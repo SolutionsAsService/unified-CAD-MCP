@@ -19,6 +19,13 @@
       "module": "kicad_mcp.server",
       "license": "MIT, Copyright (c) 2024; separately installed with original LICENSE",
       "protocol": "MCP 1.x; isolated from same-named kicad_mcp package"
+    },
+    "freecad": {
+      "repository": "https://github.com/NiRuLabs/NiRuLinkFreeCAD",
+      "commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+      "module": "unified_cad_mcp.freecad_adapter",
+      "license": "MIT; separate checkout retains original LICENSE",
+      "protocol": "Standalone stdlib MCP 2024-11-05 stdio server + FreeCAD Qt localhost TCP addon"
     }
   }
 }

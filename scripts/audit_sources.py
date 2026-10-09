@@ -39,6 +39,17 @@ def selectors(node, names, constants=None):
 
 def static_inventory(source, backend):
     rows = []
+    if backend == 'freecad':
+        for filename in ['server/nirulink_mcp_server.py', 'nirulink_listener.py', 'server/nirulink_bridge.py']:
+            tree = ast.parse((source / filename).read_text())
+            for node in ast.walk(tree):
+                if filename.endswith('nirulink_mcp_server.py') and isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'tools' for t in node.targets):
+                    rows.extend(dict(kind='tool', name=t['name'], file=filename, line=node.lineno) for t in ast.literal_eval(node.value))
+                if filename.endswith('nirulink_mcp_server.py') and isinstance(node, ast.FunctionDef) and node.name == 'handle_tool_call':
+                    rows.extend(dict(kind='dispatch', name=v, file=filename, line=node.lineno) for _,v in selectors(node, {'tool_name'}))
+                if not filename.endswith('nirulink_mcp_server.py') and isinstance(node, ast.FunctionDef):
+                    rows.append(dict(kind='native_method', name=node.name, file=filename, line=node.lineno))
+        return rows
     files = sorted((source / ('design_mcp' if backend == 'cad' else 'src/kicad_mcp')).rglob('*.py'))
     for path in files:
         if 'proto' in path.parts:
@@ -106,6 +117,7 @@ async def wire_inventory(config):
     for name,b in config['backends'].items():
         env={'FASTMCP_CHECK_FOR_UPDATES':'off','FASTMCP_SHOW_SERVER_BANNER':'false','KICAD_MCP_NO_TELEMETRY':'1',**b.get('env',{})}
         if name=='pcb': env['KICAD_MCP_ENABLE_SCHEMATIC']='1'
+        if name=='freecad': env['UNIFIED_FREECAD_EXPERIMENTAL']='1'
         async with Client(StdioTransport(b['command'],b['args'],env=env,cwd=b.get('cwd',config['project_root']),keep_alive=False),mode='legacy',timeout=60) as c:
             result[name]={}
             for key,method in [('tools',c.list_tools),('resources',c.list_resources),('templates',c.list_resource_templates),('prompts',c.list_prompts)]:

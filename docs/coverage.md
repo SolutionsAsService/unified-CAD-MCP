@@ -1,7 +1,7 @@
 # Source-derived capability coverage
 
-Audit date: 2026-10-09. Sources are the exact three commits in sources.lock.json.
-All three source trees were fetched and their actual registrations inspected;
+Audit date: 2026-10-09. Sources are the exact four commits in sources.lock.json.
+All four source trees were fetched and their actual registrations inspected;
 README lists were not used as the inventory. The packaged coverage.json includes
 complete live tool schemas/descriptions/annotations and source hashes/locations.
 Read it through unified://capabilities/inventory; use tools/list for what is
@@ -17,9 +17,13 @@ currently enabled and initialized. A pinned inventory is not a health probe.
   branches. Nineteen are on by default; sixteen schematic tools are opt-in.
   All 54 public IPC client methods are accounted for, including properties and
   lifecycle methods; 44 are reachable from tool dispatch and ten are not.
-- All three upstream servers currently register zero prompts and zero templates.
+- All four upstream servers currently register zero prompts and zero templates.
   Generic proxy support is retained and exercised with synthetic peers.
-- Unified: 71 tools normally, 87 with schematic opt-in, eight resources.
+- NiRuLinkFreeCAD: 16 registered tools and matching 16 dispatch branches, three
+  plane enum choices and 19 internal transport/listener helpers (54 evidence rows).
+  Two tools enabled normally; fourteen provisional helpers opt-in. No extra
+  native methods are advertised. See [FreeCAD semantics/security](freecad.md).
+- Unified: 73 tools normally, 103 with both experimental opt-ins, eight resources.
   No redundant per-operation wrappers inflate the advertised catalog.
 
 Two exact semantic aliases exist inside the existing KiCad routers:
@@ -80,9 +84,9 @@ Run from the checkout after installing the pinned environments:
 UNIFIED_CAD_BACKEND_CONFIG="$PWD/unified-cad.local.json" .venv/bin/python -m pytest -q
 ~~~
 
-The fetch script only retrieves the three selected pins, never runs source setup
+The fetch script only retrieves the four selected pins, never runs source setup
 scripts, and refuses to change a dirty or differently pinned existing audit tree.
-The audit discovers actual wire tools with schematic opt-in, parses registrations,
+The audit discovers actual wire tools with both experimental opt-ins, parses registrations,
 dispatch branches, guarded selectors (including constant-backed fallback verbs),
 resources and native boundaries, applies the reviewed semantic policy, and fails
 on drift. CI runs the same source regeneration comparison. It does not index or
@@ -98,7 +102,7 @@ A session restart invalidates state and is never automatic after a mutation.
 
 Proxy schemas, annotations, images, structured data, resource/prompt payloads
 and error flags are preserved. Upstream descriptions are unchanged, so unified
-instructions and this inventory supply necessary native caveats. NiRuLabs often
+instructions and this inventory supply necessary native caveats. The PCB backend often
 returns application errors inside JSON text without setting isError; the proxy
 preserves this, and real-source tests assert that convention. Inspect both.
 
@@ -110,3 +114,8 @@ installed or invoked.
 The inventory additionally expands all 54 NiRuLabs schema enum choices into
 source-pinned schema_choice rows, including commit/drop and annotation-order
 values; these are option coverage, not 54 additional engineering tools.
+
+FreeCAD differs: the adapter promotes native ok:false envelopes to isError,
+retaining error/output details, rather than repeating upstream false-success text.
+Provisional helpers may still be logically incorrect when native ok:true; discovery
+is not a validity guarantee. No image/resource/prompt is invented for NiRuLink.

@@ -29,10 +29,14 @@ def test_complete_canonical_inventory_and_semantic_duplicates():
         assert all(r['disposition'] in {'canonical','semantic_duplicate','implementation_of','unavailable'} for r in rows)
         tools={r['name'] for r in rows if r['kind']=='tool'}
         assert tools=={t['name'] for t in data['wire']['tools']}
+        if backend=='freecad':
+            assert tools=={r['name'] for r in rows if r['kind']=='dispatch'}
+            assert sum(r.get('default_advertised',False) for r in rows if r['kind']=='tool')==2
+            assert data['wire']['resources']==data['wire']['prompts']==[]
         if backend=='pcb':
             assert tools=={r['name'] for r in rows if r['kind']=='dispatch'}
             assert sum(r.get('default_advertised',False) for r in rows if r['kind']=='tool')==19
-    assert len(names)==len(set(names))==86
+    assert len(names)==len(set(names))==102
     aliases=[r for r in INVENTORY['backends']['kicad']['source_entries'] if r['disposition']=='semantic_duplicate']
     assert len(aliases)==2
     assert all(r['reason'] and r['compatibility'] for r in aliases)
@@ -83,11 +87,12 @@ async def test_every_upstream_schema_matches_unified_wire(tmp_path):
     config=load_config(Path(selected))
     if 'pcb' not in config.backends: pytest.skip('PCB backend required')
     config.backends['pcb'].env['KICAD_MCP_ENABLE_SCHEMATIC']='1'
+    config.backends['freecad'].env['UNIFIED_FREECAD_EXPERIMENTAL']='1'
     config.backends['pcb'].env['UNIFIED_PCB_SOCKET']=str(tmp_path/'missing.sock')
     path=tmp_path/'config.json';path.write_text(config.model_dump_json())
     async with Client(StdioTransport(sys.executable,['-m','unified_cad_mcp.server','--config',str(path)],keep_alive=False),mode='legacy',timeout=60) as c:
         tools={t.name:t.model_dump(mode='json',by_alias=True,exclude_none=True) for t in await c.list_tools()}
-        assert len(tools)==87
+        assert len(tools)==103
         for backend,data in INVENTORY['backends'].items():
             for original in data['wire']['tools']:
                 proxied=tools[backend+'_'+original['name']]

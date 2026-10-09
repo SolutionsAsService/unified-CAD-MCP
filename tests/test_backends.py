@@ -28,7 +28,7 @@ async def test_pinned_servers_through_real_unified_stdio(tmp_path):
     async with Client(transport, mode="legacy", timeout=60, init_timeout=60) as client:
         tools = await client.list_tools()
         names = [tool.name for tool in tools]
-        assert len(names) == len(set(names)) == (87 if "pcb" in config.backends and config.backends["pcb"].env.get("KICAD_MCP_ENABLE_SCHEMATIC") == "1" else 71 if "pcb" in config.backends else 52)
+        assert len(names) == len(set(names)) == (87 if "pcb" in config.backends and config.backends["pcb"].env.get("KICAD_MCP_ENABLE_SCHEMATIC") == "1" else 71 if "pcb" in config.backends else 52) + (16 if config.backends.get("freecad") and config.backends["freecad"].env.get("UNIFIED_FREECAD_EXPERIMENTAL") == "1" else 2 if "freecad" in config.backends else 0)
         assert sum(n.startswith("kicad_") for n in names) == 18
         assert sum(n.startswith("cad_") for n in names) == 33
         assert "kicad_design" in names and "cad_create_box_revision" in names

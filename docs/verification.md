@@ -92,3 +92,28 @@ additional regressions and real native-precondition failure paths. Combined with
 the unchanged baseline coverage this provides 37 tests. The regenerated inventory
 also records all 54 NiRuLabs schema-enumerated options (layers, labels, commit
 actions and annotation ordering); these are not counted as extra MCP tools.
+
+## Four-backend NiRuLink acceptance (2026-10-09)
+
+Earlier sections are historical. Full four-backend suite: **58 passed in 65.02s**,
+including all prior 37 tests. Source audit: 18/33/35/16 tools; FreeCAD 54 source
+evidence entries. Actual upstream stdio initialize/list/call and all 102 upstream
+schemas through unified stdio were checked (103 including context), plus default
+gates (73 total) and unchanged eight resources. New FreeCAD backend has no
+resources/templates/prompts/images. Real absent-listener/disconnected errors were
+checked without touching any real GUI. The raw upstream dispatches were exercised
+against a rejecting fake native boundary so no operation can hide ok:false errors.
+Fragmented TCP, framing bounds, total deadline, disconnect/no-replay, source digest,
+local-only endpoint, schema/path checks and isolation are mocked/unit evidence,
+not native geometry proof. Successful connection protocol used explicitly fake
+version data; no native FreeCAD installation, GUI shape creation or export is claimed.
+
+Bootstrap installed an isolated stdlib FreeCAD server from its exact Git commit;
+no installer, native GUI, host config or external registration ran. Existing local
+config preserved; full acceptance uses ignored unified-cad.all.local.json.
+CI remains read-only tests/build only and bootstraps all four backends.
+
+Final focused run: all **23 FreeCAD tests passed in 6.08s**, including two
+additional port/type/gate/privacy regressions (60 tests total with prior suite).
+Wheel build passed and packaged the adapter/inventory. Source drift comparison,
+CLI config validation and git diff whitespace check are required before commit.

@@ -16,10 +16,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--asset-root", type=Path, required=True)
     parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--backend", choices=["kicad", "cad", "pcb", "all"], default="all")
+    parser.add_argument("--backend", choices=["kicad", "cad", "pcb", "freecad", "all"], default="all")
     parser.add_argument("--output", type=Path, default=ROOT / "unified-cad.local.json")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--enable-pcb-schematic", action="store_true", help="Expose 16 experimental IPC schematic tools; compatible native implementation still required")
+    parser.add_argument("--enable-freecad-experimental", action="store_true", help="Expose 14 uncommissioned FreeCAD helpers")
     args = parser.parse_args()
     asset = args.asset_root.resolve(strict=True)
     project = args.project_root.resolve(strict=True)
@@ -38,6 +39,34 @@ def main() -> None:
         if target.exists() and not (target / "pyvenv.cfg").is_file():
             parser.error(f"Refusing non-venv existing directory: {target}")
         python = target / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        if name == "freecad":
+            # Stdlib-only upstream: never run its installer or touch GUI config.
+            source_dir = target / "source"
+            commands = [
+                ["git", "init", str(source_dir)],
+                ["git", "-C", str(source_dir), "remote", "add", "origin", source["repository"]],
+                ["git", "-C", str(source_dir), "fetch", "--depth", "1", "origin", source["commit"]],
+                ["git", "-C", str(source_dir), "checkout", "--detach", source["commit"]],
+            ]
+            print(json.dumps({"backend": name, "install": commands}))
+            if not args.dry_run:
+                if not target.exists():
+                    venv.EnvBuilder(with_pip=False).create(target)
+                if source_dir.exists():
+                    actual = subprocess.check_output(["git", "-C", str(source_dir), "rev-parse", "HEAD"], text=True).strip()
+                    dirty = subprocess.check_output(["git", "-C", str(source_dir), "status", "--porcelain"], text=True)
+                    if actual != source["commit"] or dirty:
+                        parser.error("Refusing to alter existing FreeCAD source checkout")
+                else:
+                    for command in commands:
+                        subprocess.run(command, check=True, timeout=180)
+            config["backends"][name] = {
+                "command": str(python), "args": [str(ROOT / "src/unified_cad_mcp/freecad_adapter.py")],
+                "cwd": str(project), "env": {"UNIFIED_FREECAD_SOURCE": str(source_dir),
+                    "UNIFIED_FREECAD_EXPERIMENTAL": "1" if args.enable_freecad_experimental else "0"},
+                "timeout_seconds": 120,
+            }
+            continue
         requirement = f"git+{source['repository']}.git@{source['commit']}"
         command = [sys.executable, "-m", "pip", "--python", str(python), "install"]
         constraints = ROOT / "locks" / f"{name}-py312.txt"

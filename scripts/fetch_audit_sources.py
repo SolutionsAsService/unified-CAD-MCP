@@ -1,4 +1,4 @@
-"""Fetch only the three explicitly pinned sources for reproducible coverage checks."""
+"""Fetch only the explicitly pinned sources for reproducible coverage checks."""
 import json
 from pathlib import Path
 import subprocess

@@ -1333,6 +1333,1282 @@
         ]
       }
     },
+    "freecad": {
+      "source_entries": [
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_add_sketch_circle",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "add_sketch_circle",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_add_sketch_rectangle",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "add_sketch_rectangle",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_chamfer",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "chamfer",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_close_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "close_sketch",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_connect_to_freecad",
+          "default_advertised": true,
+          "disposition": "canonical",
+          "experimental": false,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "connect_to_freecad",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_body",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "create_body",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "create_sketch",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_execute_python",
+          "default_advertised": true,
+          "disposition": "canonical",
+          "experimental": false,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "execute_python",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_export_step",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "export_step",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_export_stl",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "export_stl",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_fillet",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "fillet",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_get_objects",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "get_objects",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_get_shape_info",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "get_shape_info",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_new_document",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "new_document",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_pad",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "pad",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_pocket",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "dispatch",
+          "line": 290,
+          "name": "pocket",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_connect_to_freecad",
+          "default_advertised": true,
+          "disposition": "canonical",
+          "experimental": false,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "connect_to_freecad",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_execute_python",
+          "default_advertised": true,
+          "disposition": "canonical",
+          "experimental": false,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "execute_python",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_new_document",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "new_document",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_body",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "create_body",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "create_sketch",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_add_sketch_rectangle",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "add_sketch_rectangle",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_add_sketch_circle",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "add_sketch_circle",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_close_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "close_sketch",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_pad",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "pad",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_pocket",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "pocket",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_fillet",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "fillet",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_chamfer",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "chamfer",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_export_stl",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "export_stl",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_export_step",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "export_step",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_get_objects",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "get_objects",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_get_shape_info",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "tool",
+          "line": 66,
+          "name": "get_shape_info",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 223,
+          "name": "start_server",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 232,
+          "name": "stop_server",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 25,
+          "name": "__init__",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 32,
+          "name": "start",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 48,
+          "name": "stop",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 57,
+          "name": "_on_new_connection",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 69,
+          "name": "_on_client_disconnected",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 77,
+          "name": "_on_data_ready",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 109,
+          "name": "_send_response",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "nirulink_listener.py",
+          "kind": "native_method",
+          "line": 116,
+          "name": "_execute_request",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "1f3ce64d0c68342d667437069711f5d2ff7c022549634e8639ce7bd931b65f3c"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 96,
+          "name": "execute_in_freecad",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 16,
+          "name": "__init__",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 21,
+          "name": "connect",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 32,
+          "name": "disconnect",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 38,
+          "name": "is_connected",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 42,
+          "name": "execute",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 62,
+          "name": "_send",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 68,
+          "name": "_receive",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "canonical_capabilities": [
+            "freecad_connect_to_freecad",
+            "freecad_execute_python"
+          ],
+          "disposition": "implementation_of",
+          "file": "server/nirulink_bridge.py",
+          "kind": "native_method",
+          "line": 84,
+          "name": "_recv_exact",
+          "reason": "Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "975d844c0492f5aacf303ae6cf54398d8dccd9a58fb561d31b9b5282a6c45513"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "schema_choice",
+          "line": 66,
+          "name": "create_sketch",
+          "parameter": "input.plane",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315",
+          "value": "XY"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "schema_choice",
+          "line": 66,
+          "name": "create_sketch",
+          "parameter": "input.plane",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315",
+          "value": "XZ"
+        },
+        {
+          "availability": "optional; native FreeCAD GUI/addon required; not native-verified",
+          "canonical": "freecad_create_sketch",
+          "default_advertised": false,
+          "disposition": "canonical",
+          "experimental": true,
+          "file": "server/nirulink_mcp_server.py",
+          "kind": "schema_choice",
+          "line": 66,
+          "name": "create_sketch",
+          "parameter": "input.plane",
+          "preconditions": [
+            "FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback",
+            "Explicit connect; independent live GUI document, mm lengths",
+            "UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers"
+          ],
+          "reason": "Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.",
+          "source_commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+          "source_sha256": "b5e667148cf9c0e52daf4a7b90ae1816f820f4804ce6f8597ad1340efd803315",
+          "value": "YZ"
+        }
+      ],
+      "wire": {
+        "prompts": [],
+        "resources": [],
+        "templates": [],
+        "tools": [
+          {
+            "description": "Connect to a running FreeCAD instance with NiRuLink FreeCAD addon",
+            "inputSchema": {
+              "properties": {
+                "host": {
+                  "default": "localhost",
+                  "description": "Host address (default: localhost)",
+                  "type": "string"
+                },
+                "port": {
+                  "default": 9876,
+                  "description": "Port number (default: 9876)",
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "name": "connect_to_freecad"
+          },
+          {
+            "description": "Execute Python code in FreeCAD. Has full access to FreeCAD API including FreeCAD (App), FreeCADGui (Gui), Part, PartDesign, Sketcher, Draft, Mesh, and all other modules.",
+            "inputSchema": {
+              "properties": {
+                "code": {
+                  "description": "Python code to execute in FreeCAD",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code"
+              ],
+              "type": "object"
+            },
+            "name": "execute_python"
+          },
+          {
+            "description": "Create a new FreeCAD document",
+            "inputSchema": {
+              "properties": {
+                "name": {
+                  "default": "Unnamed",
+                  "description": "Document name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": "new_document"
+          },
+          {
+            "description": "Create a new PartDesign Body for parametric modeling",
+            "inputSchema": {
+              "properties": {
+                "name": {
+                  "description": "Body name (optional)",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": "create_body"
+          },
+          {
+            "description": "Create a new sketch on a plane",
+            "inputSchema": {
+              "properties": {
+                "body": {
+                  "description": "Body to attach sketch to (optional)",
+                  "type": "string"
+                },
+                "plane": {
+                  "default": "XY",
+                  "description": "Plane to sketch on",
+                  "enum": [
+                    "XY",
+                    "XZ",
+                    "YZ"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": "create_sketch"
+          },
+          {
+            "description": "Add a rectangle to the active sketch",
+            "inputSchema": {
+              "properties": {
+                "height": {
+                  "description": "Height (mm)",
+                  "type": "number"
+                },
+                "sketch": {
+                  "description": "Sketch name (optional)",
+                  "type": "string"
+                },
+                "width": {
+                  "description": "Width (mm)",
+                  "type": "number"
+                },
+                "x": {
+                  "description": "Bottom-left X coordinate (mm)",
+                  "type": "number"
+                },
+                "y": {
+                  "description": "Bottom-left Y coordinate (mm)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "width",
+                "height"
+              ],
+              "type": "object"
+            },
+            "name": "add_sketch_rectangle"
+          },
+          {
+            "description": "Add a circle to the active sketch",
+            "inputSchema": {
+              "properties": {
+                "cx": {
+                  "description": "Center X coordinate (mm)",
+                  "type": "number"
+                },
+                "cy": {
+                  "description": "Center Y coordinate (mm)",
+                  "type": "number"
+                },
+                "radius": {
+                  "description": "Radius (mm)",
+                  "type": "number"
+                },
+                "sketch": {
+                  "description": "Sketch name (optional)",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cx",
+                "cy",
+                "radius"
+              ],
+              "type": "object"
+            },
+            "name": "add_sketch_circle"
+          },
+          {
+            "description": "Close/finalize a sketch",
+            "inputSchema": {
+              "properties": {
+                "sketch": {
+                  "description": "Sketch name (optional)",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": "close_sketch"
+          },
+          {
+            "description": "Extrude a sketch to create a 3D solid (add material)",
+            "inputSchema": {
+              "properties": {
+                "length": {
+                  "description": "Extrusion length (mm)",
+                  "type": "number"
+                },
+                "reversed": {
+                  "default": false,
+                  "description": "Reverse direction",
+                  "type": "boolean"
+                },
+                "sketch": {
+                  "description": "Sketch to extrude",
+                  "type": "string"
+                },
+                "symmetric": {
+                  "default": false,
+                  "description": "Extrude both directions",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "sketch",
+                "length"
+              ],
+              "type": "object"
+            },
+            "name": "pad"
+          },
+          {
+            "description": "Cut into a solid using a sketch (remove material)",
+            "inputSchema": {
+              "properties": {
+                "length": {
+                  "description": "Cut depth (mm), 0 for through all",
+                  "type": "number"
+                },
+                "sketch": {
+                  "description": "Sketch defining cut profile",
+                  "type": "string"
+                },
+                "through_all": {
+                  "default": false,
+                  "description": "Cut through entire part",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "sketch"
+              ],
+              "type": "object"
+            },
+            "name": "pocket"
+          },
+          {
+            "description": "Add fillet (rounded edge) to edges",
+            "inputSchema": {
+              "properties": {
+                "edges": {
+                  "description": "Edge names to fillet (e.g., ['Edge1', 'Edge2'])",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "radius": {
+                  "description": "Fillet radius (mm)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "radius",
+                "edges"
+              ],
+              "type": "object"
+            },
+            "name": "fillet"
+          },
+          {
+            "description": "Add chamfer (angled cut) to edges",
+            "inputSchema": {
+              "properties": {
+                "edges": {
+                  "description": "Edge names to chamfer",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "size": {
+                  "description": "Chamfer size (mm)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "size",
+                "edges"
+              ],
+              "type": "object"
+            },
+            "name": "chamfer"
+          },
+          {
+            "description": "Export model to STL format for 3D printing",
+            "inputSchema": {
+              "properties": {
+                "filepath": {
+                  "description": "Output file path (.stl)",
+                  "type": "string"
+                },
+                "object": {
+                  "description": "Object to export (optional)",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "filepath"
+              ],
+              "type": "object"
+            },
+            "name": "export_stl"
+          },
+          {
+            "description": "Export model to STEP format",
+            "inputSchema": {
+              "properties": {
+                "filepath": {
+                  "description": "Output file path (.step)",
+                  "type": "string"
+                },
+                "object": {
+                  "description": "Object to export (optional)",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "filepath"
+              ],
+              "type": "object"
+            },
+            "name": "export_step"
+          },
+          {
+            "description": "List all objects in the active document",
+            "inputSchema": {
+              "properties": {},
+              "type": "object"
+            },
+            "name": "get_objects"
+          },
+          {
+            "description": "Get information about a shape (volume, area, bounding box)",
+            "inputSchema": {
+              "properties": {
+                "object": {
+                  "description": "Object name (optional)",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": "get_shape_info"
+          }
+        ]
+      }
+    },
     "kicad": {
       "source_entries": [
         {
@@ -10332,6 +11608,13 @@
       "license": "No license declared in inspected source; not vendored or relicensed here",
       "module": "design_mcp.server",
       "repository": "https://github.com/SolutionsAsService/design-mcp-server"
+    },
+    "freecad": {
+      "commit": "b60aad723d4607dd1789ef3b1b287571d237afe8",
+      "license": "MIT; separate checkout retains original LICENSE",
+      "module": "unified_cad_mcp.freecad_adapter",
+      "protocol": "Standalone stdlib MCP 2024-11-05 stdio server + FreeCAD Qt localhost TCP addon",
+      "repository": "https://github.com/NiRuLabs/NiRuLinkFreeCAD"
     },
     "kicad": {
       "commit": "82f427027ac77e8090bc64816e6afe42581983eb",

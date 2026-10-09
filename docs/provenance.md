@@ -33,3 +33,14 @@ upstream requirement, so the tested isolated lock fixes protobuf 6.33.6.
 The integration's launch adapter and coverage extractor are original glue, not
 copies of backend source. Coverage metadata includes wire schemas and source
 locations/hashes; it does not embed the unlicensed design implementation.
+
+## NiRuLink FreeCAD extension (2026-10-09)
+
+Starting revision 10d389116bdc1dc2cf7beb7fb2ebb59a41b9beb2. Exact requested
+NiRuLabs/NiRuLinkFreeCAD main pinned at b60aad723d4607dd1789ef3b1b287571d237afe8.
+MIT, Copyright (c) 2026 Arnold Vosloo / NiRuLabs. Original LICENSE retained in
+separate source checkout. No upstream setup/install/client-registration script
+was run. Its standalone server is stdlib-only (no dependency lock needed); its
+addon requires user-installed FreeCAD GUI/Qt. Runtime verifies SHA-256 of imported
+server/bridge files. Existing three source pins and locks remain unchanged.
+Full architecture/version conflict, exact setup and native limitations: [FreeCAD](freecad.md).

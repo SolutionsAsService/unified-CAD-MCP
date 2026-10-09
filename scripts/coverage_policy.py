@@ -20,6 +20,19 @@ CAD_WORKER = {
 
 
 def apply_policy(name, rows, source):
+    if name == 'freecad':
+        for row in rows:
+            if row['kind'] in {'tool', 'dispatch', 'schema_choice'}:
+                row.update(default_advertised=row['name'] in {'connect_to_freecad', 'execute_python'},
+                    availability='optional; native FreeCAD GUI/addon required; not native-verified',
+                    experimental=row['name'] not in {'connect_to_freecad', 'execute_python'},
+                    preconditions=['FreeCAD GUI 1.0+ with pinned NiRuLink addon on loopback',
+                                   'Explicit connect; independent live GUI document, mm lengths',
+                                   'UNIFIED_FREECAD_EXPERIMENTAL=1 for 14 provisional helpers'],
+                    reason='Live GUI semantics differ from cad_* saved-asset inspection/provenance/revisions; no redundant alias. Upstream helper implementation is provisional; execute_python is its recommended path.')
+            else:
+                row.update(disposition='implementation_of', canonical_capabilities=['freecad_connect_to_freecad', 'freecad_execute_python'],
+                    reason='Internal listener/client lifecycle or framed code execution helper; not an additional registered MCP tool/action. Ping is transport health only, not a CAD operation.')
     if name == 'pcb':
         tree=ast.parse((source/'src/kicad_mcp/tools.py').read_text())
         dispatcher=next(n for n in tree.body if isinstance(n,ast.AsyncFunctionDef) and n.name=='_execute_tool')

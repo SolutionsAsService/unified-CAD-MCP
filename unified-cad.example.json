@@ -30,6 +30,20 @@
         "KICAD_MCP_ENABLE_SCHEMATIC": "0"
       },
       "timeout_seconds": 120
+    },
+    "freecad": {
+      "enabled": false,
+      "command": "/absolute/path/to/unified-CAD-MCP/.backends/freecad/bin/python",
+      "args": [
+        "/absolute/path/to/unified-CAD-MCP/src/unified_cad_mcp/freecad_adapter.py"
+      ],
+      "env": {
+        "UNIFIED_FREECAD_SOURCE": "/absolute/path/to/unified-CAD-MCP/.backends/freecad/source",
+        "UNIFIED_FREECAD_EXPERIMENTAL": "0",
+        "UNIFIED_FREECAD_TIMEOUT": "30",
+        "UNIFIED_FREECAD_PORT": "9876"
+      },
+      "timeout_seconds": 120
     }
   }
 }

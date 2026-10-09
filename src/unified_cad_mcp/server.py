@@ -15,12 +15,17 @@ from fastmcp.server.providers.proxy import FastMCPProxy
 from .config import Configuration, load_config
 
 LOG = logging.getLogger(__name__)
-INSTRUCTIONS = """Unified CAD MCP: one connection, three isolated engineering backends.
+INSTRUCTIONS = """Unified CAD MCP: one connection, four optional isolated engineering backends.
 Start with unified_get_context. Use kicad_* for electronics/schematic/PCB workflows;
 pcb_* for NiRuLabs live IPC PCB routing (separate unsaved GUI state);
 cad_* for asset inspection, STL/FreeCAD geometry, provenance and opt-in box revisions.
+freecad_* controls a separate live FreeCAD GUI through NiRuLink; connect explicitly.
+execute_python has unrestricted current-user code/file/network access, NOT a sandbox.
+Provisional helper tools require experimental opt-in and may be incorrect.
+Never infer document ownership from cad_*; select/inspect documents explicitly.
+NiRuLink returns text/repr, not images or structured geometry.
 KiCad's kicad_design is a firmware/design-intent router, NOT mechanical CAD.
-Names in upstream guidance are backend-local: use the matching kicad_, cad_ or pcb_ tool
+Names in upstream guidance are backend-local: use the matching kicad_, cad_, pcb_ or freecad_ tool
 from tools/list; operation parameters are unchanged. Use exact resource URIs from
 resources/list (namespaced by FastMCP), not guessed unprefixed upstream URIs.
 STL units are UNKNOWN. FreeCAD length is mm. No automatic coordinate alignment,
@@ -61,7 +66,7 @@ def create_server(config: Configuration) -> FastMCP:
                 active.clear()
 
     server = FastMCP("unified-CAD-MCP", instructions=INSTRUCTIONS, lifespan=lifespan)
-    for name in ("kicad", "cad", "pcb"):
+    for name in ("kicad", "cad", "pcb", "freecad"):
         backend = config.backends.get(name)
         if backend is None or not backend.enabled:
             states[name] = {"state": "disabled"}
@@ -93,7 +98,8 @@ def create_server(config: Configuration) -> FastMCP:
             "availability_scope": "startup handshake only; native applications and later liveness are not implied",
             "routing": {"kicad_*": "electronics, schematic, PCB, firmware intent",
                         "cad_*": "asset/geometry inspection, provenance, opt-in box revisions",
-                        "pcb_*": "live KiCad IPC routing; separate session, board and transactions"},
+                        "pcb_*": "live KiCad IPC routing; separate session, board and transactions",
+                        "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session"},
             "units": {"stl": "UNKNOWN", "freecad_length": "mm",
                       "kicad": "read each tool schema; do not forward internal coordinates without conversion"},
             "coordinate_alignment": "explicit user-provided transform required",
@@ -101,8 +107,9 @@ def create_server(config: Configuration) -> FastMCP:
             "inventory_resource": "unified://capabilities/inventory",
             "pcb_preconditions": "Running compatible KiCad GUI with IPC enabled, explicit document selection. Experimental schematic tools require opt-in. route_pads reaches push-and-shove bridge methods, but no stock native support is implied. Other unregistered bridge methods are listed in the inventory.",
             "pcb_connection_adapter": "Launch adapter corrects upstream api_token/socket_path mismatch; optional UNIFIED_PCB_SOCKET selects the socket explicitly. No credentials are logged.",
+            "freecad_preconditions": "User-installed FreeCAD GUI 1.0+ with pinned NiRuLink addon on localhost; explicit connect. Only connect/execute_python default. No native runtime implied by initialization, rollback, retries or shared document ownership.",
             "filesystem_sandbox": False,
-            "handoff": "Pinned kicad_export supports gerbers/bom_csv/thumbnail, not STEP. Obtain STEP/FCStd using an explicitly chosen external native workflow, select it in the CAD asset root, then inspect with cad_*. No automatic copying/import/fit certification.",
+            "handoff": "Pinned kicad_export supports gerbers/bom_csv/thumbnail, not STEP. Obtain STEP/FCStd using an explicitly chosen native workflow (freecad_execute_python can export from its independent GUI document), select it in the CAD asset root, then inspect with cad_*. No automatic copying/import/fit certification.",
         }
 
     @server.resource("unified://project/context")

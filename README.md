@@ -1,6 +1,6 @@
 # Unified CAD MCP
 
-One stdio MCP connection for **KiCad electronics** and **CAD inspection / opt-in FreeCAD box revisions**, and **live KiCad IPC routing**, composed from the two SolutionsAsService repositories and NiRuLabs/kicad-mcp-server. This repository is the integration entry point, not a claim to implement all CAD engineering.
+One stdio MCP connection for **KiCad electronics** and **CAD inspection / opt-in FreeCAD box revisions**, and **live KiCad IPC routing**, composed from the two SolutionsAsService repositories and NiRuLabs/kicad-mcp-server plus **NiRuLink live FreeCAD GUI control**. This repository is the integration entry point, not a claim to implement all CAD engineering.
 
 **Why combine them?** The agent gets one catalog, explicit tool ownership, a shared project reference, and one documented PCB-to-mechanical handoff. Distinct namespaces avoid confusing KiCad's firmware design router with mechanical CAD. Combining servers does **not** automatically align coordinates, synchronize documents, validate clearances, or make incomplete engineering evidence true.
 
@@ -13,9 +13,10 @@ Integration by [SolutionsAsService](https://github.com/SolutionsAsService). Upst
 | kicad_* | [kicad-mcp](https://github.com/SolutionsAsService/kicad-mcp) | 18 tools: schematic/PCB domain routers, libraries, routing, export, firmware intent and guidance |
 | cad_* | [design-mcp-server](https://github.com/SolutionsAsService/design-mcp-server) | 33 tools: asset/STL inspection, optional FreeCAD geometry, box revisions, provenance, quantities and guarded candidate/assembly records |
 | pcb_* | [NiRuLabs/kicad-mcp-server](https://github.com/NiRuLabs/kicad-mcp-server) | 19 default tools, plus 16 opt-in experimental schematic tools; live IPC inspection, pathfinding, track/via editing and routing |
+| freecad_* | [NiRuLabs/NiRuLinkFreeCAD](https://github.com/NiRuLabs/NiRuLinkFreeCAD) | 2 default tools (connect/Python); 14 opt-in provisional modeling/export/inspection helpers; separate live GUI |
 | unified_get_context | This integration | Routing, startup status, project reference, units and limitations |
 
-At the pinned revisions: **71 default tools, or 87 with experimental schematic tools enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + context; six design resources + context + exhaustive capability inventory). Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
+At the pinned revisions: **73 default tools, or 103 with both experimental sets enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + 2/16 FreeCAD + context; six design resources + context + exhaustive capability inventory). Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
 
 ### Architecture
 
@@ -27,13 +28,15 @@ flowchart LR
   Unified -->|cad_*| C[Persistent design subprocess]
   Unified -->|pcb_*| P[Persistent NiRuLabs MCP1 subprocess]
   P --> G[Compatible running KiCad GUI IPC]
+  Unified -->|freecad_*| N[NiRuLink stdlib MCP plus safety adapter]
+  N --> Q[User-installed FreeCAD GUI addon: loopback TCP]
   K --> E[KiCad / pcbnew / kicad-cli: optional native install]
   C --> F[FreeCAD bundled Python: optional native install]
   K -. explicit export and coordinate / unit handoff .-> C
   C -. source hashes / UNKNOWN evidence .-> Context
 ~~~
 
-[FastMCP 4.1 composition and proxies](https://gofastmcp.com/servers/composition) own protocol routing and content serialization. Backends run in **separate Python environments**: current KiCad uses FastMCP 4 / MCP 2, while design and NiRuLabs use isolated MCP 1 runtimes. The two KiCad distributions both import as kicad_mcp and MUST NOT share a Python environment. Installing both into one Python environment would create a dependency conflict. All backend connections use the interoperable MCP 2025-11-25 handshake.
+[FastMCP 4.1 composition and proxies](https://gofastmcp.com/servers/composition) own protocol routing and content serialization. Backends run in **separate Python environments**: current KiCad uses FastMCP 4 / MCP 2, while design and NiRuLabs use isolated MCP 1 runtimes. The two KiCad distributions both import as kicad_mcp and MUST NOT share a Python environment. Installing both into one Python environment would create a dependency conflict. The original three backends use MCP 2025-11-25; NiRuLink uses MCP 2024-11-05 in its isolated stdlib server. FastMCP handles both.
 
 ## Quick start
 
@@ -54,9 +57,13 @@ python3 -m venv .venv
 
 On Windows use .venv\Scripts\python.exe and .venv\Scripts\unified-cad-mcp.exe; the bootstrap chooses the correct backend interpreter paths. Windows execution is not claimed tested.
 
-The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad, .backends/cad and .backends/pcb, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad / --backend pcb for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
+The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad, .backends/cad and .backends/pcb plus .backends/freecad, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad / --backend pcb / --backend freecad for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
 
 **Licensing:** backend source is installed separately, not copied/relicensed into this repository. KiCad has an MIT license. No license was declared in the inspected design source; see [provenance](docs/provenance.md) before redistributing its code.
+
+### Live FreeCAD setup
+
+See [exact native prerequisites, installation, security and provisional-tool limits](docs/freecad.md). Bootstrap installs only the pinned stdlib server, **not the FreeCAD GUI/addon**. Existing configs remain unchanged; merge the optional backend explicitly. Example config disables it. Default calls are freecad_connect_to_freecad and freecad_execute_python; the latter is unrestricted code under the GUI user, not sandboxed. No unauthenticated remote endpoint is allowed by the adapter.
 
 ### MCP host configuration
 
@@ -82,7 +89,7 @@ OpenClaw uses mcp.servers instead of mcpServers; use the same command/args throu
 - Project root is shared context, **not a sandbox**. KiCad permits broader filesystem access and may invoke native programs or network tools under current-user permissions.
 - Design assets must reside beneath DESIGN_MCP_ASSET_ROOT. That backend owns path validation; unified does not weaken or replace it.
 - CAD writes require DESIGN_MCP_REVISION_ROOT: an existing dedicated output directory distinct from the asset root. Previews also require DESIGN_MCP_PREVIEW_ROOT, distinct from both. These are **not enabled by default**. Use non-overlapping roots; never place untrusted manifests in an output root.
-- Optional FreeCAD operations require DESIGN_MCP_FREECAD_PYTHON pointing to a compatible interpreter with FreeCAD and Part modules. KiCad has separate native setup requirements; consult its pinned source documentation.
+- Optional **cad_** FreeCAD operations require DESIGN_MCP_FREECAD_PYTHON pointing to a compatible interpreter with FreeCAD and Part modules. KiCad has separate native setup requirements; consult its pinned source documentation.
 - Opening untrusted native CAD documents invokes complex parsers. Process separation is not OS sandboxing.
 - One long-lived process per backend preserves KiCad's **in-process** PCB write locks. Separate unified/standalone processes are not cross-process locked. Do not run multiple writers on a board. One trusted operator session per stdio server is intended; no public HTTP service or multi-tenant isolation is provided.
 - Backend initialization has a finite deadline. One missing backend does not remove the other. unified_get_context reports startup failure; fix it then restart. No automatic reconnect or mutation replay is implemented. A timeout may leave a native subprocess operation running: inspect effects before retrying.
