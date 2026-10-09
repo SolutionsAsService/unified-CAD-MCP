@@ -16,9 +16,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--asset-root", type=Path, required=True)
     parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--backend", choices=["kicad", "cad", "all"], default="all")
+    parser.add_argument("--backend", choices=["kicad", "cad", "pcb", "all"], default="all")
     parser.add_argument("--output", type=Path, default=ROOT / "unified-cad.local.json")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--enable-pcb-schematic", action="store_true", help="Expose 16 experimental IPC schematic tools; compatible native implementation still required")
     args = parser.parse_args()
     asset = args.asset_root.resolve(strict=True)
     project = args.project_root.resolve(strict=True)
@@ -49,14 +50,14 @@ def main() -> None:
                 venv.EnvBuilder(with_pip=False).create(target)
             subprocess.run(command, check=True, timeout=600)
         config["backends"][name] = {
-            "command": str(python), "args": ["-m", source["module"]],
-            "cwd": str(project), "env": {"DESIGN_MCP_ASSET_ROOT": str(asset)} if name == "cad" else {},
+            "command": str(python), "args": ([str(ROOT / "src/unified_cad_mcp/pcb_adapter.py")] if name == "pcb" else ["-m", source["module"]]),
+            "cwd": str(project), "env": {"DESIGN_MCP_ASSET_ROOT": str(asset)} if name == "cad" else ({"KICAD_MCP_ENABLE_SCHEMATIC": "1" if args.enable_pcb_schematic else "0"} if name == "pcb" else {"KICAD_MCP_NO_TELEMETRY": "1"}),
             "timeout_seconds": 120,
         }
     if not args.dry_run:
         with args.output.open("x", encoding="utf-8") as handle:
             json.dump(config, handle, indent=2)
-            handle.write("\n")
+            handle.write(chr(10))
         print(f"Configuration written to {args.output}. No MCP host configuration changed.")
 
 

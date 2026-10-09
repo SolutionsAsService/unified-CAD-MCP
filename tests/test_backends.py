@@ -28,7 +28,7 @@ async def test_pinned_servers_through_real_unified_stdio(tmp_path):
     async with Client(transport, mode="legacy", timeout=60, init_timeout=60) as client:
         tools = await client.list_tools()
         names = [tool.name for tool in tools]
-        assert len(names) == len(set(names)) == 52
+        assert len(names) == len(set(names)) == (87 if "pcb" in config.backends and config.backends["pcb"].env.get("KICAD_MCP_ENABLE_SCHEMATIC") == "1" else 71 if "pcb" in config.backends else 52)
         assert sum(n.startswith("kicad_") for n in names) == 18
         assert sum(n.startswith("cad_") for n in names) == 33
         assert "kicad_design" in names and "cad_create_box_revision" in names
@@ -44,7 +44,7 @@ async def test_pinned_servers_through_real_unified_stdio(tmp_path):
         rejected = await client.call_tool("cad_inspect_asset", {"relative_path": "../outside.txt"}, raise_on_error=False)
         assert rejected.is_error
         resources = await client.list_resources()
-        assert len(resources) == 7
+        assert len(resources) == 8
         assert "design://cad/project/assets" in {str(r.uri) for r in resources}
         revisions = await client.read_resource("design://cad/project/revisions")
         assert json.loads(revisions[0].text)["status"] == "CONFIGURATION_REQUIRED"

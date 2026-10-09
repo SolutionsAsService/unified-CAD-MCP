@@ -1,6 +1,6 @@
 # Unified CAD MCP
 
-One stdio MCP connection for **KiCad electronics** and **CAD inspection / opt-in FreeCAD box revisions**, composed from the requested SolutionsAsService repositories. This repository is the integration entry point, not a claim to implement all CAD engineering.
+One stdio MCP connection for **KiCad electronics** and **CAD inspection / opt-in FreeCAD box revisions**, and **live KiCad IPC routing**, composed from the two SolutionsAsService repositories and NiRuLabs/kicad-mcp-server. This repository is the integration entry point, not a claim to implement all CAD engineering.
 
 **Why combine them?** The agent gets one catalog, explicit tool ownership, a shared project reference, and one documented PCB-to-mechanical handoff. Distinct namespaces avoid confusing KiCad's firmware design router with mechanical CAD. Combining servers does **not** automatically align coordinates, synchronize documents, validate clearances, or make incomplete engineering evidence true.
 
@@ -12,9 +12,10 @@ Integration by [SolutionsAsService](https://github.com/SolutionsAsService). Upst
 |---|---|---|
 | kicad_* | [kicad-mcp](https://github.com/SolutionsAsService/kicad-mcp) | 18 tools: schematic/PCB domain routers, libraries, routing, export, firmware intent and guidance |
 | cad_* | [design-mcp-server](https://github.com/SolutionsAsService/design-mcp-server) | 33 tools: asset/STL inspection, optional FreeCAD geometry, box revisions, provenance, quantities and guarded candidate/assembly records |
+| pcb_* | [NiRuLabs/kicad-mcp-server](https://github.com/NiRuLabs/kicad-mcp-server) | 19 default tools, plus 16 opt-in experimental schematic tools; live IPC inspection, pathfinding, track/via editing and routing |
 | unified_get_context | This integration | Routing, startup status, project reference, units and limitations |
 
-At the pinned revisions: **52 tools and 7 resources total** (18 + 33 + 1 tools; six design resources + one integration resource). Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
+At the pinned revisions: **71 default tools, or 87 with experimental schematic tools enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + context; six design resources + context + exhaustive capability inventory). Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
 
 ### Architecture
 
@@ -24,13 +25,15 @@ flowchart LR
   Unified --> Context[unified_get_context: project / units / startup status]
   Unified -->|kicad_*| K[Persistent KiCad subprocess]
   Unified -->|cad_*| C[Persistent design subprocess]
+  Unified -->|pcb_*| P[Persistent NiRuLabs MCP1 subprocess]
+  P --> G[Compatible running KiCad GUI IPC]
   K --> E[KiCad / pcbnew / kicad-cli: optional native install]
   C --> F[FreeCAD bundled Python: optional native install]
   K -. explicit export and coordinate / unit handoff .-> C
   C -. source hashes / UNKNOWN evidence .-> Context
 ~~~
 
-[FastMCP 4.1 composition and proxies](https://gofastmcp.com/servers/composition) own protocol routing and content serialization. Backends run in **separate Python environments**: current KiCad uses FastMCP 4 / MCP 2, while design requires MCP 1 (mcp<2). Installing both into one Python environment would create a dependency conflict. Both backend connections use the interoperable MCP 2025-11-25 handshake.
+[FastMCP 4.1 composition and proxies](https://gofastmcp.com/servers/composition) own protocol routing and content serialization. Backends run in **separate Python environments**: current KiCad uses FastMCP 4 / MCP 2, while design and NiRuLabs use isolated MCP 1 runtimes. The two KiCad distributions both import as kicad_mcp and MUST NOT share a Python environment. Installing both into one Python environment would create a dependency conflict. All backend connections use the interoperable MCP 2025-11-25 handshake.
 
 ## Quick start
 
@@ -51,7 +54,7 @@ python3 -m venv .venv
 
 On Windows use .venv\Scripts\python.exe and .venv\Scripts\unified-cad-mcp.exe; the bootstrap chooses the correct backend interpreter paths. Windows execution is not claimed tested.
 
-The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad and .backends/cad, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
+The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad, .backends/cad and .backends/pcb, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad / --backend pcb for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
 
 **Licensing:** backend source is installed separately, not copied/relicensed into this repository. KiCad has an MIT license. No license was declared in the inspected design source; see [provenance](docs/provenance.md) before redistributing its code.
 
@@ -91,7 +94,7 @@ OpenClaw uses mcp.servers instead of mcpServers; use the same command/args throu
 
 1. Read unified_get_context, then kicad_get_usage_guidance for PCB operations.
 2. Use kicad_* for board work. kicad_design means firmware-driven electrical intent, **not** generic 3D modeling.
-3. Use the actual kicad_export schema to export a board model. Explicitly select an output path in the CAD asset root, or move it there yourself. No automatic copy/import occurs.
+3. The pinned kicad_export router offers gerbers, bom_csv and thumbnail, NOT STEP export. Obtain STEP/FCStd with an explicitly selected external native workflow, then place it in the CAD asset root. Do not invent an export operation. No automatic copy/import occurs.
 4. Inspect the STEP/FCStd with cad_* if FreeCAD is available. Record source hash, units, origin/axes, transforms and selected objects. STL units remain **UNKNOWN** until externally established; FreeCAD lengths are mm.
 5. Preserve backend UNKNOWN fit results. AABB overlap is not a collision proof; user-attested records are not independent verification. Box-only authoring is not arbitrary enclosure/assembly design.
 6. Recheck hashes and affected geometry after changes. There is no cross-backend transaction, live synchronization, manufacturing certification, or automatic engineering approval.
@@ -107,3 +110,32 @@ UNIFIED_CAD_BACKEND_CONFIG="$PWD/unified-cad.local.json" .venv/bin/python -m pyt
 ~~~
 
 Default protocol tests launch **synthetic MCP peers**, including through the real unified stdio entrypoint. They check routing, schemas, metadata/content/errors, resources/templates/prompts, process reuse/cleanup, missing backends and deadlines. Opt-in tests exercise the pinned upstream servers. Neither substitutes for native PCB export or FreeCAD BREP/revision tests. See [verification evidence](docs/verification.md). CI runs protocol/config tests and pinned backend integration, not GUI/hardware tests or publication.
+
+## Live PCB backend and exhaustive coverage
+
+Read [coverage and native limits](docs/coverage.md). The full pinned, source-derived
+inventory is packaged as src/unified_cad_mcp/coverage.json and available through
+unified://capabilities/inventory. It is an audit snapshot, not runtime health.
+
+The PCB bootstrap launches a stdlib adapter inside its separate environment.
+It fixes the upstream api_token/socket_path positional mismatch without changing
+any tool schema or result. Optional backend env UNIFIED_PCB_SOCKET selects the
+actual socket; pass api_token only as the tool argument. Tokens are not logged.
+An absent explicit Unix socket fails before NNG can wait indefinitely. Automatic
+upstream discovery may choose the first socket/document: explicit selection is
+recommended when multiple KiCad instances are open. Do not infer that the live
+GUI board matches a file being edited by kicad_*.
+
+Use --enable-pcb-schematic during bootstrap, or explicitly set the PCB backend
+KICAD_MCP_ENABLE_SCHEMATIC=1, to advertise all 35 upstream tools. Default is 19.
+The extra 16 require experimental native schematic IPC support. Discovery alone
+never certifies those native commands. pcb_route_pads uses upstream push-and-shove
+extensions; stock KiCad support is NOT established. Its upstream implementation
+can commit despite reported violations. Never treat its success as DRC approval.
+No fake native success or no-op substitute is supplied.
+
+KiCad telemetry writes are disabled by default with KICAD_MCP_NO_TELEMETRY=1.
+No project indexing, supplier download, GUI installation, or host registration
+occurs at startup. Invoking the corresponding upstream tools remains an explicit
+operator action. Error payloads are preserved: some upstream failures are JSON
+text with an error field while isError remains false; inspect both.

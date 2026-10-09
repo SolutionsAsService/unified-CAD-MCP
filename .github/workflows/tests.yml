@@ -19,6 +19,9 @@ jobs:
       - run: |
           mkdir -p .cache/assets
           python scripts/bootstrap_backends.py --project-root "$PWD" --asset-root "$PWD/.cache/assets"
+      - run: python scripts/fetch_audit_sources.py
+      - run: python scripts/audit_sources.py --config unified-cad.local.json --check
+      - run: python -m pip wheel --no-deps --wheel-dir dist .
       - run: python -m pytest -q -m backends
         env:
           UNIFIED_CAD_BACKEND_CONFIG: ${{ github.workspace }}/unified-cad.local.json

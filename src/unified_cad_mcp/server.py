@@ -15,11 +15,12 @@ from fastmcp.server.providers.proxy import FastMCPProxy
 from .config import Configuration, load_config
 
 LOG = logging.getLogger(__name__)
-INSTRUCTIONS = """Unified CAD MCP: one connection, two distinct engineering domains.
+INSTRUCTIONS = """Unified CAD MCP: one connection, three isolated engineering backends.
 Start with unified_get_context. Use kicad_* for electronics/schematic/PCB workflows;
+pcb_* for NiRuLabs live IPC PCB routing (separate unsaved GUI state);
 cad_* for asset inspection, STL/FreeCAD geometry, provenance and opt-in box revisions.
 KiCad's kicad_design is a firmware/design-intent router, NOT mechanical CAD.
-Names in upstream guidance are backend-local: use the matching kicad_ or cad_ tool
+Names in upstream guidance are backend-local: use the matching kicad_, cad_ or pcb_ tool
 from tools/list; operation parameters are unchanged. Use exact resource URIs from
 resources/list (namespaced by FastMCP), not guessed unprefixed upstream URIs.
 STL units are UNKNOWN. FreeCAD length is mm. No automatic coordinate alignment,
@@ -28,6 +29,9 @@ cross-backend transaction exists. Preserve UNKNOWN and user-attested evidence.
 Project root is a coordination reference, NOT a filesystem sandbox; KiCad may
 access current-user paths and invoke native programs/network. CAD root checks are
 backend-specific. Never infer native KiCad/FreeCAD availability from tool discovery.
+pcb_route_pads requires compatible native push-and-shove extensions; stock KiCad
+support is not established and upstream may commit despite reported violations.
+Inspect JSON error fields as well as isError; upstream error conventions vary.
 Do not replay a timed-out mutation: inspect its effects before retrying.
 """
 
@@ -57,13 +61,13 @@ def create_server(config: Configuration) -> FastMCP:
                 active.clear()
 
     server = FastMCP("unified-CAD-MCP", instructions=INSTRUCTIONS, lifespan=lifespan)
-    for name in ("kicad", "cad"):
+    for name in ("kicad", "cad", "pcb"):
         backend = config.backends.get(name)
         if backend is None or not backend.enabled:
             states[name] = {"state": "disabled"}
             continue
         client = Client(
-            StdioTransport(backend.command, backend.args, env={"FASTMCP_CHECK_FOR_UPDATES": "off", "FASTMCP_SHOW_SERVER_BANNER": "false", **backend.env},
+            StdioTransport(backend.command, backend.args, env={"FASTMCP_CHECK_FOR_UPDATES": "off", "FASTMCP_SHOW_SERVER_BANNER": "false", "KICAD_MCP_NO_TELEMETRY": "1", **backend.env},
                            cwd=backend.cwd or config.project_root, keep_alive=False),
             name=f"unified-{name}", timeout=backend.timeout_seconds,
             init_timeout=backend.init_timeout_seconds, mode="legacy",
@@ -88,18 +92,26 @@ def create_server(config: Configuration) -> FastMCP:
             "backends": {name: dict(state) for name, state in states.items()},
             "availability_scope": "startup handshake only; native applications and later liveness are not implied",
             "routing": {"kicad_*": "electronics, schematic, PCB, firmware intent",
-                        "cad_*": "asset/geometry inspection, provenance, opt-in box revisions"},
+                        "cad_*": "asset/geometry inspection, provenance, opt-in box revisions",
+                        "pcb_*": "live KiCad IPC routing; separate session, board and transactions"},
             "units": {"stl": "UNKNOWN", "freecad_length": "mm",
                       "kicad": "read each tool schema; do not forward internal coordinates without conversion"},
             "coordinate_alignment": "explicit user-provided transform required",
             "shared_document_transaction": False,
+            "inventory_resource": "unified://capabilities/inventory",
+            "pcb_preconditions": "Running compatible KiCad GUI with IPC enabled, explicit document selection. Experimental schematic tools require opt-in. route_pads reaches push-and-shove bridge methods, but no stock native support is implied. Other unregistered bridge methods are listed in the inventory.",
+            "pcb_connection_adapter": "Launch adapter corrects upstream api_token/socket_path mismatch; optional UNIFIED_PCB_SOCKET selects the socket explicitly. No credentials are logged.",
             "filesystem_sandbox": False,
-            "handoff": "Export a board using kicad_export; explicitly select its output in the CAD asset root, then inspect it with cad_* tools. No automatic copying/import/fit certification.",
+            "handoff": "Pinned kicad_export supports gerbers/bom_csv/thumbnail, not STEP. Obtain STEP/FCStd using an explicitly chosen external native workflow, select it in the CAD asset root, then inspect with cad_*. No automatic copying/import/fit certification.",
         }
 
     @server.resource("unified://project/context")
     async def project_context() -> str:
         return json.dumps(await unified_get_context(), sort_keys=True)
+
+    @server.resource("unified://capabilities/inventory")
+    async def capability_inventory() -> str:
+        return (Path(__file__).parent / "coverage.json").read_text(encoding="utf-8")
 
     return server
 

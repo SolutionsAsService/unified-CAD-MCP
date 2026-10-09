@@ -16,3 +16,20 @@ FastMCP's maintained composition/proxy implementation already supplies tool/reso
 Neither backend source, tests nor docs were edited. New repository files implement packaging, composition, configuration, tests and integration documentation. No upstream AGENTS/global instructions are installed into the host.
 
 locks/*-py312.txt snapshots the tested dependency versions. These are not wheel-hash locks, platform-independent binary guarantees, or an offline distribution. Review source/dependency changes explicitly; no startup updater fetches new backend Git revisions.
+
+## Comprehensive integration extension (2026-10-09)
+
+Starting revision: 42af239c94b6146e3359e565c16619d33ff29cd0.
+Re-fetched all three repositories and verified their actual HEAD revisions.
+NiRuLabs/kicad-mcp-server is pinned to
+2fd14d32fb2532071649cf6779b5e97b524e0a1b (MIT, Copyright (c) 2024).
+Its source is installed externally, not vendored; existing two pins remain unchanged.
+Reviewed its pyproject build configuration, server imports and proto setup before
+installation. No plugin install script, proto compiler, GUI download or repository
+example that mutates a board was executed. The package is built by Hatchling;
+existing generated protobuf files require protobuf >=6.31.1 despite a weaker
+upstream requirement, so the tested isolated lock fixes protobuf 6.33.6.
+
+The integration's launch adapter and coverage extractor are original glue, not
+copies of backend source. Coverage metadata includes wire schemas and source
+locations/hashes; it does not embed the unlicensed design implementation.

@@ -50,3 +50,45 @@ On 2026-10-09, GitHub CLI device authorization completed successfully. Both `gh 
 Reviewed source/configuration, bootstrap and version isolation, CI, protocol/regression coverage, and documentation. No server implementation defect required a change. Expanded `.gitignore` to cover environment-file variants, local credential directories, alternate local operator configs, and runtime index/state directories. Clarified that the MCP SDK inherits only a minimal environment; custom backend variables must be explicitly configured, values are literal, and only project/cwd paths are config-relative. The workflow has read-only repository permissions and no publish/deploy step. Source composition remains separately installed and no design-source license was invented.
 
 `git diff --check` passed after review edits; untracked task-owned text files were also checked for trailing whitespace/conflict markers. The earlier authentication blocker was resolved by successful device authorization and authenticated account/repository permission checks.
+
+## Three-backend extension acceptance (2026-10-09)
+
+The original two-backend evidence above is historical. All original 27 tests
+were retained. Added exhaustive source/wire inventory, semantic alias and
+no-name-only-dedup tests; PCB absent-runtime isolation; both schematic gate
+modes; actual disconnected NiRuLabs JSON error preservation; actual missing
+FreeCAD configuration; token/socket separation; and bounded NNG send regression.
+Token/deadline boundary tests are mocked unit tests, not native connection proof.
+
+The initial full extended suite passed 35 tests in 61.66 seconds. Subsequent
+focused acceptance adds two tests and rechecks the changed adapter/inventory.
+Live tests initialize all three exact upstream sources and compare every one of
+86 upstream tool schemas, descriptions, output schemas and annotations through
+the real unified stdio entrypoint (87 tools including context). Default PCB mode
+separately verifies 19 native-dependent tools plus context; experimental mode
+adds all sixteen gated tools. Actual CAD conversion, scope, file hashing/path
+rejection and KiCad usage guidance continue to run without native mocks.
+
+A real missing-socket test exposed an upstream unbounded NNG send. The launch
+adapter now rejects absent explicit Unix sockets before connecting and adds a
+30-second NNG send deadline alongside upstream's receive deadline, without
+retrying mutations. Upstream native error/result formats remain unchanged.
+
+On this host, command discovery found no kicad-cli, pcbnew GUI, FreeCAD,
+FreeCADCmd, freecad, java or kikit. System Python could import neither pcbnew,
+FreeCAD nor Part. Therefore no native board mutation, DRC, autorouting, FreeCAD
+BREP, or enclosure fit test is claimed. Discovery and disconnected calls are
+real MCP tests, not fabricated native success. Native GUI/IPC and Windows tests
+remain blocked on operator-supplied compatible runtimes.
+
+CLI configuration validation, wheel build, installed PCB pip check, source
+regeneration/drift comparison and whitespace checks are part of acceptance.
+CI has read-only contents permission and only installs pinned source packages,
+fetches the three audit trees, checks coverage, builds a local wheel and tests;
+there is no deploy, release, project upload or external telemetry action.
+
+Final focused acceptance: 11 tests passed in 20.19 seconds, including the two
+additional regressions and real native-precondition failure paths. Combined with
+the unchanged baseline coverage this provides 37 tests. The regenerated inventory
+also records all 54 NiRuLabs schema-enumerated options (layers, labels, commit
+actions and annotation ordering); these are not counted as extra MCP tools.

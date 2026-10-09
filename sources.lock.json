@@ -12,6 +12,13 @@
       "commit": "d1cd0f61d6ab631a69ec3de1a7769e94174c6a01",
       "module": "design_mcp.server",
       "license": "No license declared in inspected source; not vendored or relicensed here"
+    },
+    "pcb": {
+      "repository": "https://github.com/NiRuLabs/kicad-mcp-server",
+      "commit": "2fd14d32fb2532071649cf6779b5e97b524e0a1b",
+      "module": "kicad_mcp.server",
+      "license": "MIT, Copyright (c) 2024; separately installed with original LICENSE",
+      "protocol": "MCP 1.x; isolated from same-named kicad_mcp package"
     }
   }
 }

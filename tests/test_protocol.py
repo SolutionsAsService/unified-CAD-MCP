@@ -55,7 +55,7 @@ async def test_resources_templates_prompts_and_context(config):
     async with Client(create_server(config)) as client:
         resources = await client.list_resources()
         uris = {str(resource.uri) for resource in resources}
-        assert {"fixture://cad/status", "fixture://kicad/status", "unified://project/context"} == uris
+        assert {"fixture://cad/status", "fixture://kicad/status", "unified://project/context", "unified://capabilities/inventory"} == uris
         value = await client.read_resource("fixture://cad/status")
         assert json.loads(value[0].text) == {"domain": "cad"}
         templates = await client.list_resource_templates()

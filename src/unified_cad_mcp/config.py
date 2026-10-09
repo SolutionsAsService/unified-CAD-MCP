@@ -30,7 +30,7 @@ class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal[1] = 1
     project_root: str
-    backends: dict[Literal["kicad", "cad"], BackendConfig]
+    backends: dict[Literal["kicad", "cad", "pcb"], BackendConfig]
 
 
 def load_config(path: Path) -> Configuration:

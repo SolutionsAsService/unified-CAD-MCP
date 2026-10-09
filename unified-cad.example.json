@@ -4,13 +4,31 @@
   "backends": {
     "kicad": {
       "command": "/absolute/path/to/unified-CAD-MCP/.backends/kicad/bin/python",
-      "args": ["-m", "kicad_mcp.server"],
+      "args": [
+        "-m",
+        "kicad_mcp.server"
+      ],
       "timeout_seconds": 120
     },
     "cad": {
       "command": "/absolute/path/to/unified-CAD-MCP/.backends/cad/bin/python",
-      "args": ["-m", "design_mcp.server"],
-      "env": {"DESIGN_MCP_ASSET_ROOT": "/absolute/path/to/project/assets"},
+      "args": [
+        "-m",
+        "design_mcp.server"
+      ],
+      "env": {
+        "DESIGN_MCP_ASSET_ROOT": "/absolute/path/to/project/assets"
+      },
+      "timeout_seconds": 120
+    },
+    "pcb": {
+      "command": "/absolute/path/to/unified-CAD-MCP/.backends/pcb/bin/python",
+      "args": [
+        "/absolute/path/to/unified-CAD-MCP/src/unified_cad_mcp/pcb_adapter.py"
+      ],
+      "env": {
+        "KICAD_MCP_ENABLE_SCHEMATIC": "0"
+      },
       "timeout_seconds": 120
     }
   }
