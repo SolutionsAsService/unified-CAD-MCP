@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "unified-cad-mcp"
+version = "0.1.0"
+authors = [{ name = "SolutionsAsService" }]
+description = "One namespaced MCP entry point for KiCad electronics and CAD inspection/revisions"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["fastmcp==4.1.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9,<10", "pytest-asyncio>=1.4,<2"]
+
+[project.scripts]
+unified-cad-mcp = "unified_cad_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/unified_cad_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["backends: opt-in tests against installed pinned upstream servers"]

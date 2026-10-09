@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "backends": {
+    "kicad": {
+      "repository": "https://github.com/SolutionsAsService/kicad-mcp",
+      "commit": "82f427027ac77e8090bc64816e6afe42581983eb",
+      "module": "kicad_mcp.server",
+      "license": "MIT (copyright blwfish); remains in separately installed source distribution"
+    },
+    "cad": {
+      "repository": "https://github.com/SolutionsAsService/design-mcp-server",
+      "commit": "d1cd0f61d6ab631a69ec3de1a7769e94174c6a01",
+      "module": "design_mcp.server",
+      "license": "No license declared in inspected source; not vendored or relicensed here"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+.venv/
+.backends/
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+unified-cad.local.json
+.env
+# Local credentials, alternate operator configs, indexes and runtime state.
+.env.*
+!.env.example
+unified-cad.*.local.json
+secrets/
+.secrets/
+.jcodemunch/
+.kicad_mcp/
+.design-mcp/
+.state/
