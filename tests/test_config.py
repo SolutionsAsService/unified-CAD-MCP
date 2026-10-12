@@ -52,3 +52,14 @@ def test_explicit_cwd_resolves_relative_to_config(tmp_path):
     config = load_config(path)
     assert config.project_root == str(project)
     assert config.backends["cad"].cwd == str(work)
+
+
+def test_example_configuration_matches_schema():
+    """Guards doc/schema drift: the published example must validate (paths are placeholders)."""
+    import json
+    from unified_cad_mcp.config import Configuration
+    example = json.loads((Path(__file__).resolve().parents[1] / "unified-cad.example.json").read_text())
+    config = Configuration.model_validate(example)
+    assert config.drone_tools is False
+    assert config.backends["freecad"].enabled is False
+    assert config.backends["freecad"].env["UNIFIED_FREECAD_EXPERIMENTAL"] == "0"

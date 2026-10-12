@@ -88,11 +88,13 @@ async def test_disabled_backend_never_started(config):
 
 
 async def test_backend_timeout_returns_error_without_replay(config):
-    # Allow startup protocol requests to complete before timing out the operation.
-    config.backends["cad"].timeout_seconds = 2
+    # The per-request timeout also bounds the MCP initialize request, so it must
+    # exceed a slow host's interpreter/FastMCP startup (about 4 s observed on WSL)
+    # while staying well below the operation's duration.
+    config.backends["cad"].timeout_seconds = 8
     async with Client(create_server(config)) as client:
         assert "cad_wait" in {tool.name for tool in await client.list_tools()}
-        result = await client.call_tool("cad_wait", {"seconds": 10}, raise_on_error=False)
+        result = await client.call_tool("cad_wait", {"seconds": 30}, raise_on_error=False)
         assert result.is_error
         assert (Path(config.project_root) / "cad.wait-calls").read_text() == "started\n"
         assert (await client.call_tool("cad_identify")).data["domain"] == "cad"

@@ -13,6 +13,7 @@ from fastmcp.client.transports import StdioTransport
 from fastmcp.server.providers.proxy import FastMCPProxy
 
 from .config import Configuration, load_config
+from .drone import create_drone_server
 
 LOG = logging.getLogger(__name__)
 INSTRUCTIONS = """Unified CAD MCP: one connection, four optional isolated engineering backends.
@@ -38,6 +39,9 @@ pcb_route_pads requires compatible native push-and-shove extensions; stock KiCad
 support is not established and upstream may commit despite reported violations.
 Inspect JSON error fields as well as isError; upstream error conventions vary.
 Do not replay a timed-out mutation: inspect its effects before retrying.
+drone_* (only when enabled) are pure in-process HEURISTIC sizing calculators
+(mass/CG/inertia budget, hover propulsion, weight-class notes); they read no CAD
+documents and their outputs are estimates, not test data or legal advice.
 """
 
 
@@ -88,6 +92,13 @@ def create_server(config: Configuration) -> FastMCP:
         proxy = FastMCPProxy(name=f"{name}-backend", client_factory=connected_client)
         server.mount(proxy, namespace=name)
 
+    if config.drone_tools:
+        server.mount(create_drone_server(), namespace="drone")
+        states["drone"] = {"state": "builtin", "native_cad_runtime": "not_required",
+                           "kind": "heuristic estimators"}
+    else:
+        states["drone"] = {"state": "disabled"}
+
     @server.tool(annotations={"readOnlyHint": True, "destructiveHint": False,
                               "idempotentHint": True, "openWorldHint": False})
     async def unified_get_context() -> dict:
@@ -99,7 +110,8 @@ def create_server(config: Configuration) -> FastMCP:
             "routing": {"kicad_*": "electronics, schematic, PCB, firmware intent",
                         "cad_*": "asset/geometry inspection, provenance, opt-in box revisions",
                         "pcb_*": "live KiCad IPC routing; separate session, board and transactions",
-                        "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session"},
+                        "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session",
+                        "drone_*": "opt-in pure-Python heuristic drone sizing (mass/CG, hover propulsion, weight class); no documents"},
             "units": {"stl": "UNKNOWN", "freecad_length": "mm",
                       "kicad": "read each tool schema; do not forward internal coordinates without conversion"},
             "coordinate_alignment": "explicit user-provided transform required",

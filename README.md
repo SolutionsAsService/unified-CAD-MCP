@@ -14,9 +14,10 @@ Integration by [SolutionsAsService](https://github.com/SolutionsAsService). Upst
 | cad_* | [design-mcp-server](https://github.com/SolutionsAsService/design-mcp-server) | 33 tools: asset/STL inspection, optional FreeCAD geometry, box revisions, provenance, quantities and guarded candidate/assembly records |
 | pcb_* | [NiRuLabs/kicad-mcp-server](https://github.com/NiRuLabs/kicad-mcp-server) | 19 default tools, plus 16 opt-in experimental schematic tools; live IPC inspection, pathfinding, track/via editing and routing |
 | freecad_* | [NiRuLabs/NiRuLinkFreeCAD](https://github.com/NiRuLabs/NiRuLinkFreeCAD) | 2 default tools (connect/Python); 14 opt-in provisional modeling/export/inspection helpers; separate live GUI |
+| drone_* | This integration (opt-in, in-process) | 3 pure-Python HEURISTIC drone sizing calculators: mass/CG/inertia budget, hover propulsion estimate, FAA/EASA weight-class notes. Off unless the config sets "drone_tools": true |
 | unified_get_context | This integration | Routing, startup status, project reference, units and limitations |
 
-At the pinned revisions: **73 default tools, or 103 with both experimental sets enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + 2/16 FreeCAD + context; six design resources + context + exhaustive capability inventory). Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
+At the pinned revisions: **73 default tools, or 103 with both experimental sets enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + 2/16 FreeCAD + context; six design resources + context + exhaustive capability inventory). Re-verified on 2026-10-12 through the real stdio entrypoint. Enabling drone_tools adds 3 tools (76 / 106). A freecad backend with "enabled": false (the bootstrap default since 2026-10-12) contributes 0, giving 71 / 87. Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
 
 ### Architecture
 
@@ -40,7 +41,7 @@ flowchart LR
 
 ## Quick start
 
-Requires Python 3.11+, Git, and pip 23+ (pip must support --python). The tested lock snapshots were produced with Python 3.12 on Linux. Python's venv must be available; OS package installation is not automated here.
+Requires Python 3.11+, Git, and pip 23+ (pip must support --python). The tested lock snapshots were produced with Python 3.12 on Linux. Python's venv must be available; OS package installation is not automated here. Only the unified .venv needs pip: backend venvs are created without pip and populated with pip --python. If ensurepip is missing (Debian/Ubuntu without python3-venv, no sudo), create the venv with python3 -m venv --without-pip .venv and bootstrap pip with the official https://bootstrap.pypa.io/get-pip.py into .venv/bin/python.
 
 ~~~sh
 git clone https://github.com/SolutionsAsService/unified-CAD-MCP.git
@@ -50,16 +51,17 @@ python3 -m venv .venv
 # Choose EXISTING directories you intend the backends to work with.
 .venv/bin/python scripts/bootstrap_backends.py \
   --project-root /absolute/path/to/project \
-  --asset-root /absolute/path/to/project/assets
+  --asset-root /absolute/path/to/project/assets \
+  --enable-drone-tools   # optional: heuristic drone_* calculators
 .venv/bin/unified-cad-mcp --config unified-cad.local.json --check-config
 .venv/bin/unified-cad-mcp --config unified-cad.local.json
 ~~~
 
 On Windows use .venv\Scripts\python.exe and .venv\Scripts\unified-cad-mcp.exe; the bootstrap chooses the correct backend interpreter paths. Windows execution is not claimed tested.
 
-The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad, .backends/cad and .backends/pcb plus .backends/freecad, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad / --backend pcb / --backend freecad for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
+The bootstrap installs **exact Git commits** from [sources.lock.json](sources.lock.json), with [tested dependency constraints](locks/). It creates .backends/kicad, .backends/cad and .backends/pcb plus .backends/freecad, writes the freecad backend as "enabled": false unless --enable-freecad (or --backend freecad) is given, because its default execute_python tool is unrestricted code execution in a live GUI, installs no GUI/native CAD applications, never changes host MCP settings, and refuses to overwrite an existing config. Use --dry-run to inspect commands without writes, or --backend cad / --backend kicad / --backend pcb / --backend freecad for one domain. Re-running against existing managed venvs may update packages to the selected locks; inspect before doing so. Network access is needed during installation. Source pins and dependency versions are recorded; this is not a hash-locked supply-chain attestation.
 
-**Licensing:** backend source is installed separately, not copied/relicensed into this repository. KiCad has an MIT license. No license was declared in the inspected design source; see [provenance](docs/provenance.md) before redistributing its code.
+**Licensing:** this integration repository does not yet contain a LICENSE file; until the owner adds one, no reuse license is granted beyond GitHub's terms. Backend source is installed separately, not copied/relicensed into this repository. KiCad has an MIT license. No license was declared in the inspected design source; see [provenance](docs/provenance.md) before redistributing its code.
 
 ### Live FreeCAD setup
 
@@ -93,7 +95,7 @@ OpenClaw uses mcp.servers instead of mcpServers; use the same command/args throu
 - Opening untrusted native CAD documents invokes complex parsers. Process separation is not OS sandboxing.
 - One long-lived process per backend preserves KiCad's **in-process** PCB write locks. Separate unified/standalone processes are not cross-process locked. Do not run multiple writers on a board. One trusted operator session per stdio server is intended; no public HTTP service or multi-tenant isolation is provided.
 - Backend initialization has a finite deadline. One missing backend does not remove the other. unified_get_context reports startup failure; fix it then restart. No automatic reconnect or mutation replay is implemented. A timeout may leave a native subprocess operation running: inspect effects before retrying.
-- timeout_seconds defaults to 120 (maximum 3600); init_timeout_seconds defaults to 20 (maximum 60). Long autorouting needs a deliberate larger backend and host request timeout.
+- timeout_seconds defaults to 120 (maximum 3600); init_timeout_seconds defaults to 20 (maximum 60). Long autorouting needs a deliberate larger backend and host request timeout. The per-request timeout_seconds also bounds the MCP initialize request, so the effective startup deadline is the smaller of the two; keep timeout_seconds above backend interpreter startup (several seconds on slow/WSL hosts).
 - Tool parameters, schemas, annotations, content, images, structured results and error flags are relayed by FastMCP. Names gain a namespace. Backend descriptions/prose may still use local tool names; apply the namespace. Upstream server instructions are not silently promoted to unified instructions.
 - FastMCP banner/update checks are disabled for child processes by default. This does not disable legitimate upstream network features or provide an air gap.
 
@@ -108,6 +110,17 @@ OpenClaw uses mcp.servers instead of mcpServers; use the same command/args throu
 
 Resource example: design://project/assets becomes **design://cad/project/assets**. Consult resources/list for exact names.
 
+## Drone design
+
+The repository can host early drone/UAV concept work, but most of the workflow is
+not yet covered. See the [drone design gap analysis and roadmap](docs/DRONE-DESIGN-PLAN.md):
+electronics (KiCad, native) is strongest; airframe CAD is GUI-bound or box-only;
+aerodynamics, FEA, harness, PX4/ArduPilot parameters and SITL simulation have no tools.
+The opt-in drone_* calculators (drone_mass_cg_budget, drone_propulsion_estimate,
+drone_regulatory_weight_class) are deterministic HEURISTIC estimates (momentum theory,
+lumped efficiencies, coarse regulatory bands) with their assumptions returned in every
+result. They are not bench data, FEA, flight tests or legal advice.
+
 ## Development / evidence
 
 ~~~sh
@@ -116,7 +129,7 @@ Resource example: design://project/assets becomes **design://cad/project/assets*
 UNIFIED_CAD_BACKEND_CONFIG="$PWD/unified-cad.local.json" .venv/bin/python -m pytest -q -m backends
 ~~~
 
-Default protocol tests launch **synthetic MCP peers**, including through the real unified stdio entrypoint. They check routing, schemas, metadata/content/errors, resources/templates/prompts, process reuse/cleanup, missing backends and deadlines. Opt-in tests exercise the pinned upstream servers. Neither substitutes for native PCB export or FreeCAD BREP/revision tests. See [verification evidence](docs/verification.md). CI runs protocol/config tests and pinned backend integration, not GUI/hardware tests or publication.
+Default protocol tests launch **synthetic MCP peers**, including through the real unified stdio entrypoint. They check routing, schemas, metadata/content/errors, resources/templates/prompts, process reuse/cleanup, missing backends and deadlines. Opt-in tests exercise the pinned upstream servers. Neither substitutes for native PCB export or FreeCAD BREP/revision tests. See [verification evidence](docs/verification.md) and the [2026-10-12 install/audit report](docs/audit-2026-10-12.md). CI runs protocol/config tests and pinned backend integration, not GUI/hardware tests or publication.
 
 ## Live PCB backend and exhaustive coverage
 

@@ -117,3 +117,40 @@ Final focused run: all **23 FreeCAD tests passed in 6.08s**, including two
 additional port/type/gate/privacy regressions (60 tests total with prior suite).
 Wheel build passed and packaged the adapter/inventory. Source drift comparison,
 CLI config validation and git diff whitespace check are required before commit.
+
+## Install, audit and drone slice (2026-10-12)
+
+Earlier sections are historical. Fresh install on Linux/WSL2, Python 3.12.3, no sudo
+and no ensurepip: python3 -m venv --without-pip .venv, pip via get-pip.py, then the
+README quick start. Full report and findings: [audit-2026-10-12.md](audit-2026-10-12.md).
+
+- Real unified stdio handshake (MCP 2025-11-25) and tools/list against the bootstrapped
+  config: **73 tools default** (unified 1, kicad 18, cad 33, pcb 19, freecad 2) and
+  **103 with both experimental gates** (pcb 35, freecad 16); **8 resources**.
+- With the operator config (freecad disabled, drone_tools true): **74 tools**
+  (unified 1, kicad 18, cad 33, pcb 19, drone 3).
+- Full suite with UNIFIED_CAD_BACKEND_CONFIG and fetched audit sources:
+  **72 passed, 0 skipped in 75.9 s** (includes tests/test_drone.py and the example-config
+  schema test). Source drift check: no drift.
+- Before the timeout-test fix, the default run had 1 reproducible failure
+  (test_backend_timeout_returns_error_without_replay; the 2 s request timeout also
+  bounded initialize on this slow host).
+
+Native FreeCAD (first native evidence for cad_*): FreeCAD 26.3 from conda-forge via
+micromamba in a user prefix (no sudo). Through the real unified stdio entrypoint:
+cad_inspect_freecad_model on a STEP (valid closed solid, 7 faces, mm units),
+cad_get_freecad_entities (faces page), cad_create_box_revision (FCStd saved and
+reopened, REOPENED_GEOMETRY_ONLY) and cad_preview_cad_revision (isometric SVG) all
+succeeded. This required two host-side steps that are not part of this repository:
+
+1. a .pth file in the conda env's site-packages containing the env's lib/ path so
+   import FreeCAD works under python -I;
+2. a DESIGN_MCP_FREECAD_PYTHON shim (an executable script named python) that runs
+   the real interpreter with -c 'import FreeCAD, Part, runpy, sys; sys.argv = sys.argv[1:];
+   runpy.run_path(sys.argv[0], run_name="__main__")', because import FreeCAD in this
+   build deletes json/math from __main__ and the pinned upstream worker imports them
+   first (NameError otherwise). Upstream fix requested; see audit finding 3.
+
+Still not performed: any native KiCad operation (kicad-cli/pcbnew not installable here
+without sudo; not on conda-forge), live KiCad IPC, FreeCAD GUI / NiRuLink addon, Windows.
+drone_* outputs are heuristic estimates verified only against independent formulae.

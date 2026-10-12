@@ -30,6 +30,9 @@ class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal[1] = 1
     project_root: str
+    # In-process, pure-Python heuristic drone estimators (drone_*). Off by default so
+    # existing catalogs/counts are unchanged; no subprocess, file or network access.
+    drone_tools: StrictBool = False
     backends: dict[Literal["kicad", "cad", "pcb", "freecad"], BackendConfig]
 
 

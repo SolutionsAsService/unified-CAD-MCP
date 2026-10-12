@@ -32,8 +32,10 @@ initialization. No native FreeCAD binary/module was available in the WSL test ho
      --output unified-cad.freecad.local.json
    ```
 
-   Default `--backend all` also installs this runtime. Existing output files are
-   never overwritten. For an existing setup, merge only the generated `freecad`
+   Default `--backend all` also installs this runtime but, since 2026-10-12, writes the
+   backend as `"enabled": false` unless `--enable-freecad` is passed (`--backend freecad`
+   enables it), so unrestricted execute_python is never exposed by accident.
+   Existing output files are never overwritten. For an existing setup, merge only the generated `freecad`
    backend entry into the trusted config you launch; keep other backends unchanged.
 3. With FreeCAD closed, place a copy of the **whole pinned checkout**
    `.backends/freecad/source` (excluding .git) in the FreeCAD user addon directory
@@ -46,7 +48,7 @@ initialization. No native FreeCAD binary/module was available in the WSL test ho
    Configure MCP clients: that upstream action edits external client settings and
    is unnecessary with unified MCP. Enabling the addon starts its listener at GUI
    startup, even without activating its workbench. It has **no authentication**.
-5. Enable the optional backend (example config deliberately has `enabled:false`),
+5. Enable the optional backend (example and default bootstrap configs deliberately have `enabled:false`),
    launch unified MCP with your config, then call `freecad_connect_to_freecad`.
    It checks `FreeCAD.Version()`. Missing GUI/listener produces an actual error.
    A stdio handshake alone is not proof of native support.

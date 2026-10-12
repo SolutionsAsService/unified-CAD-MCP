@@ -88,6 +88,8 @@ async def test_every_upstream_schema_matches_unified_wire(tmp_path):
     if 'pcb' not in config.backends: pytest.skip('PCB backend required')
     config.backends['pcb'].env['KICAD_MCP_ENABLE_SCHEMATIC']='1'
     config.backends['freecad'].env['UNIFIED_FREECAD_EXPERIMENTAL']='1'
+    config.backends['freecad'].enabled=True
+    config.drone_tools=False
     config.backends['pcb'].env['UNIFIED_PCB_SOCKET']=str(tmp_path/'missing.sock')
     path=tmp_path/'config.json';path.write_text(config.model_dump_json())
     async with Client(StdioTransport(sys.executable,['-m','unified_cad_mcp.server','--config',str(path)],keep_alive=False),mode='legacy',timeout=60) as c:

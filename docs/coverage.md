@@ -24,7 +24,10 @@ currently enabled and initialized. A pinned inventory is not a health probe.
   Two tools enabled normally; fourteen provisional helpers opt-in. No extra
   native methods are advertised. See [FreeCAD semantics/security](freecad.md).
 - Unified: 73 tools normally, 103 with both experimental opt-ins, eight resources.
-  No redundant per-operation wrappers inflate the advertised catalog.
+  No redundant per-operation wrappers inflate the advertised catalog. The opt-in
+  in-process drone_* calculators (3 tools, added 2026-10-12) are original code in
+  this repository, not an upstream backend, and are therefore outside this
+  source-derived inventory; see [DRONE-DESIGN-PLAN.md](DRONE-DESIGN-PLAN.md).
 
 Two exact semantic aliases exist inside the existing KiCad routers:
 

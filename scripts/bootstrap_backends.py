@@ -21,6 +21,8 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--enable-pcb-schematic", action="store_true", help="Expose 16 experimental IPC schematic tools; compatible native implementation still required")
     parser.add_argument("--enable-freecad-experimental", action="store_true", help="Expose 14 uncommissioned FreeCAD helpers")
+    parser.add_argument("--enable-freecad", action="store_true", help="Enable the freecad backend (unrestricted execute_python into a live GUI) in the generated config; implied by --backend freecad")
+    parser.add_argument("--enable-drone-tools", action="store_true", help="Enable in-process heuristic drone_* estimators in the generated config")
     args = parser.parse_args()
     asset = args.asset_root.resolve(strict=True)
     project = args.project_root.resolve(strict=True)
@@ -29,7 +31,7 @@ def main() -> None:
     if args.output.exists():
         parser.error("Output configuration exists; preserve it and choose a new --output")
     lock = json.loads((ROOT / "sources.lock.json").read_text())
-    config = {"schema_version": 1, "project_root": str(project), "backends": {}}
+    config = {"schema_version": 1, "project_root": str(project), "drone_tools": args.enable_drone_tools, "backends": {}}
     for name, source in lock["backends"].items():
         if args.backend not in {name, "all"}:
             continue
@@ -60,7 +62,10 @@ def main() -> None:
                 else:
                     for command in commands:
                         subprocess.run(command, check=True, timeout=180)
+            # Installed by default, but the backend that exposes unrestricted
+            # execute_python stays disabled unless explicitly requested.
             config["backends"][name] = {
+                "enabled": args.enable_freecad or args.backend == "freecad",
                 "command": str(python), "args": [str(ROOT / "src/unified_cad_mcp/freecad_adapter.py")],
                 "cwd": str(project), "env": {"UNIFIED_FREECAD_SOURCE": str(source_dir),
                     "UNIFIED_FREECAD_EXPERIMENTAL": "1" if args.enable_freecad_experimental else "0"},
