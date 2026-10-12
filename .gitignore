@@ -19,3 +19,6 @@ secrets/
 .kicad_mcp/
 .design-mcp/
 .state/
+
+# Backup copies of local configs
+*.bak-*

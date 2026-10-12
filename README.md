@@ -14,10 +14,11 @@ Integration by [SolutionsAsService](https://github.com/SolutionsAsService). Upst
 | cad_* | [design-mcp-server](https://github.com/SolutionsAsService/design-mcp-server) | 33 tools: asset/STL inspection, optional FreeCAD geometry, box revisions, provenance, quantities and guarded candidate/assembly records |
 | pcb_* | [NiRuLabs/kicad-mcp-server](https://github.com/NiRuLabs/kicad-mcp-server) | 19 default tools, plus 16 opt-in experimental schematic tools; live IPC inspection, pathfinding, track/via editing and routing |
 | freecad_* | [NiRuLabs/NiRuLinkFreeCAD](https://github.com/NiRuLabs/NiRuLinkFreeCAD) | 2 default tools (connect/Python); 14 opt-in provisional modeling/export/inspection helpers; separate live GUI |
-| drone_* | This integration (opt-in, in-process) | 3 pure-Python HEURISTIC drone sizing calculators: mass/CG/inertia budget, hover propulsion estimate, FAA/EASA weight-class notes. Off unless the config sets "drone_tools": true |
+| drone_* | This integration (opt-in, in-process) | 4 pure-Python HEURISTIC drone calculators: mass/CG/inertia budget (accepts CAD inertia tensors and a fixed-wing CG band), multirotor hover propulsion, fixed-wing aero/stability/performance/spar check (drone_fixed_wing_analysis), FAA/EASA weight-class notes. Off unless the config sets "drone_tools": true |
+| airframe_* | This integration (opt-in, worker subprocesses) | 4 tools: headless parametric fixed-wing build in FreeCAD with validation and STEP/STL/FCStd/viewer exports, STEP inspection with mesh-integrated mass properties, PNG previews, AeroSandbox aero cross-check. Off unless the config has an "airframe" section ([spec format](docs/airframe-spec.md)) |
 | unified_get_context | This integration | Routing, startup status, project reference, units and limitations |
 
-At the pinned revisions: **73 default tools, or 103 with both experimental sets enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + 2/16 FreeCAD + context; six design resources + context + exhaustive capability inventory). Re-verified on 2026-10-12 through the real stdio entrypoint. Enabling drone_tools adds 3 tools (76 / 106). A freecad backend with "enabled": false (the bootstrap default since 2026-10-12) contributes 0, giving 71 / 87. Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
+At the pinned revisions: **73 default tools, or 103 with both experimental sets enabled; 8 resources** (18 KiCad + 33 CAD + 19/35 PCB + 2/16 FreeCAD + context; six design resources + context + exhaustive capability inventory). Re-verified on 2026-10-12 through the real stdio entrypoint. Enabling drone_tools adds 4 tools (77 / 107) and an "airframe" section adds 4 more. A freecad backend with "enabled": false (the bootstrap default since 2026-10-12) contributes 0, giving 71 / 87. Capability discovery is not proof that native KiCad or FreeCAD is installed. Resource templates and prompts are also proxied if a backend supplies them. Names and schemas are discovered dynamically, not reimplemented in a stale hand-maintained catalog.
 
 ### Architecture
 
@@ -117,9 +118,27 @@ not yet covered. See the [drone design gap analysis and roadmap](docs/DRONE-DESI
 electronics (KiCad, native) is strongest; airframe CAD is GUI-bound or box-only;
 aerodynamics, FEA, harness, PX4/ArduPilot parameters and SITL simulation have no tools.
 The opt-in drone_* calculators (drone_mass_cg_budget, drone_propulsion_estimate,
-drone_regulatory_weight_class) are deterministic HEURISTIC estimates (momentum theory,
-lumped efficiencies, coarse regulatory bands) with their assumptions returned in every
-result. They are not bench data, FEA, flight tests or legal advice.
+drone_fixed_wing_analysis, drone_regulatory_weight_class) are deterministic HEURISTIC
+estimates (momentum theory, Raymer component drag build-up, Purser-Campbell V-tail,
+Munk fuselage moment, lumped efficiencies, coarse regulatory bands) with their
+assumptions and sources returned in every result. They are not bench data, FEA,
+flight tests or legal advice.
+
+The opt-in airframe_* tools build and check a parametric fixed-wing airframe
+headlessly: airframe_build_fixed_wing (FreeCAD worker; NACA lofts, control surfaces,
+spars, equipment, pockets; closed-solid, containment, clearance, interference,
+symmetry and budget checks), airframe_inspect_step, airframe_render_preview and
+airframe_aero_crosscheck (AeroSandbox VLM + AeroBuildup). Example operator config:
+
+    "drone_tools": true,
+    "airframe": {"freecad_python": "/opt/freecad-env/bin/python",
+                 "aerosandbox_python": "/opt/aero-venv/bin/python",
+                 "output_root": "/srv/cad/assets/airframe"}
+
+Mass properties are integrated over a fine closed mesh because OCCT GProp volumes
+were measured 7-20 % low on lofted solids in the tested FreeCAD build. The flaws
+found while designing a real aircraft with this server, the fixes and the roadmap to
+SITL/CFD/FEA/flight evidence are in [docs/drone-testing-flaws.md](docs/drone-testing-flaws.md).
 
 ## Development / evidence
 

@@ -1,0 +1,173 @@
+{
+ "schema": "unified-cad-mcp/fixed-wing-airframe/1",
+ "id": "reference-glider",
+ "materials": {
+  "foam": {
+   "density_g_cm3": 0.03
+  },
+  "skin": {
+   "areal_g_m2": 100
+  },
+  "laminate": {
+   "areal_g_m2": 400
+  },
+  "cf": {
+   "density_g_cm3": 1.55
+  }
+ },
+ "fuselage": {
+  "name": "Fuselage shell",
+  "exponent": 2,
+  "construction": {
+   "type": "shell",
+   "skin": "laminate"
+  },
+  "stations": [
+   {
+    "x_mm": -400,
+    "width_mm": 30,
+    "height_mm": 30
+   },
+   {
+    "x_mm": -300,
+    "width_mm": 80,
+    "height_mm": 80
+   },
+   {
+    "x_mm": -150,
+    "width_mm": 80,
+    "height_mm": 80
+   },
+   {
+    "x_mm": -60,
+    "width_mm": 20,
+    "height_mm": 20
+   }
+  ]
+ },
+ "wing": {
+  "name": "Main wing",
+  "airfoil": "0012",
+  "dihedral_deg": 0,
+  "z_root_mm": 0,
+  "construction": {
+   "type": "core_skin",
+   "core": "foam",
+   "skin": "skin"
+  },
+  "stations": [
+   {
+    "s_mm": 0,
+    "x_le_mm": 0,
+    "chord_mm": 200
+   },
+   {
+    "s_mm": 500,
+    "x_le_mm": 0,
+    "chord_mm": 200
+   }
+  ],
+  "aileron": {
+   "s_start_mm": 250,
+   "s_end_mm": 450,
+   "chord_fraction": 0.25
+  }
+ },
+ "tail": {
+  "type": "v",
+  "name": "V-tail panel",
+  "dihedral_deg": 40,
+  "root_mm": [
+   0,
+   20,
+   0
+  ],
+  "airfoil": "0009",
+  "construction": {
+   "type": "core_skin",
+   "core": "foam",
+   "skin": "skin"
+  },
+  "stations": [
+   {
+    "s_mm": 0,
+    "x_le_mm": 600,
+    "chord_mm": 120
+   },
+   {
+    "s_mm": 200,
+    "x_le_mm": 640,
+    "chord_mm": 80
+   }
+  ]
+ },
+ "spars": [
+  {
+   "name": "Spar",
+   "mirror": true,
+   "from_mm": [
+    60,
+    1,
+    0
+   ],
+   "to_mm": [
+    60,
+    400,
+    0
+   ],
+   "od_mm": 10,
+   "id_mm": 8,
+   "material": "cf",
+   "inside": [
+    "Main wing · port"
+   ],
+   "pocket_in": [
+    "Main wing · port"
+   ]
+  }
+ ],
+ "components": [
+  {
+   "name": "Battery",
+   "shape": "box",
+   "size_mm": [
+    80,
+    40,
+    30
+   ],
+   "center_mm": [
+    -220,
+    0,
+    0
+   ],
+   "mass_g": 200,
+   "inside": [
+    "Fuselage shell"
+   ],
+   "category": "energy"
+  }
+ ],
+ "envelopes": [],
+ "allowances": [
+  {
+   "name": "Wiring",
+   "mass_g": 20,
+   "position_mm": [
+    -200,
+    0,
+    0
+   ]
+  }
+ ],
+ "budget": {},
+ "validation": {
+  "min_wall_clearance_mm": 1
+ },
+ "export": {
+  "step": true,
+  "stl": true,
+  "fcstd": false,
+  "stl_linear_deflection_mm": 0.5,
+  "viewer_linear_deflection_mm": 1
+ }
+}

@@ -25,3 +25,34 @@ jobs:
       - run: python -m pytest -q -m backends
         env:
           UNIFIED_CAD_BACKEND_CONFIG: ${{ github.workspace }}/unified-cad.local.json
+  airframe:
+    # End-to-end reference drone: headless FreeCAD build + validation + STEP inspection +
+    # PNG previews + AeroSandbox cross-check, driven through the MCP tools.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -c locks/unified-py312.txt -e '.[dev]'
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: freecad
+          create-args: >-
+            python=3.11
+            freecad
+            numpy
+            matplotlib
+          cache-environment: true
+          init-shell: bash
+      - run: |
+          python -m venv "$RUNNER_TEMP/asb"
+          "$RUNNER_TEMP/asb/bin/python" -m pip install -q aerosandbox==4.2.10 neuralfoil
+      - name: Reference drone end to end
+        shell: bash -el {0}
+        run: |
+          export UNIFIED_AIRFRAME_FREECAD_PYTHON="$MAMBA_ROOT_PREFIX/envs/freecad/bin/python"
+          export UNIFIED_AIRFRAME_AEROSANDBOX_PYTHON="$RUNNER_TEMP/asb/bin/python"
+          "$UNIFIED_AIRFRAME_FREECAD_PYTHON" -c "import FreeCAD, Part, MeshPart; print(FreeCAD.Version()[:3])"
+          python -m pytest -q -m airframe -rs

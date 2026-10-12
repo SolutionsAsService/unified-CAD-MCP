@@ -13,6 +13,7 @@ from fastmcp.client.transports import StdioTransport
 from fastmcp.server.providers.proxy import FastMCPProxy
 
 from .config import Configuration, load_config
+from .airframe import create_airframe_server
 from .drone import create_drone_server
 
 LOG = logging.getLogger(__name__)
@@ -40,8 +41,14 @@ support is not established and upstream may commit despite reported violations.
 Inspect JSON error fields as well as isError; upstream error conventions vary.
 Do not replay a timed-out mutation: inspect its effects before retrying.
 drone_* (only when enabled) are pure in-process HEURISTIC sizing calculators
-(mass/CG/inertia budget, hover propulsion, weight-class notes); they read no CAD
-documents and their outputs are estimates, not test data or legal advice.
+(mass/CG/inertia budget, hover propulsion, fixed-wing aero/stability/performance,
+weight-class notes); they read no CAD documents and their outputs are estimates,
+not test data or legal advice.
+airframe_* (only when configured) build parametric fixed-wing CAD headlessly in a
+separate FreeCAD interpreter, validate it (closed solids, containment, interference,
+mass budget), render PNG previews and cross-check aerodynamics with AeroSandbox.
+Mass properties come from exact mesh integrals because OCCT GProp volumes were
+measured wrong on BSpline solids in the tested FreeCAD build.
 """
 
 
@@ -58,7 +65,9 @@ def create_server(config: Configuration) -> FastMCP:
                     await stack.enter_async_context(client)
                 except Exception as error:
                     states[name] = {"state": "unavailable", "error_type": type(error).__name__,
-                                    "action": "Check backend install/configuration and restart the unified server."}
+                                    "error": (str(error) or repr(error))[:500],
+                                    "init_timeout_seconds": config.backends[name].init_timeout_seconds,
+                                    "action": "Check backend install/configuration (and init_timeout_seconds on slow hosts) and restart the unified server."}
                     LOG.warning("Backend %s failed to initialize (%s)", name, type(error).__name__)
                 else:
                     active.add(name)
@@ -99,6 +108,16 @@ def create_server(config: Configuration) -> FastMCP:
     else:
         states["drone"] = {"state": "disabled"}
 
+    if config.airframe is not None:
+        server.mount(create_airframe_server(config.airframe), namespace="airframe")
+        states["airframe"] = {"state": "builtin", "kind": "headless worker subprocesses",
+                              "freecad_python": config.airframe.freecad_python,
+                              "aerosandbox_python": config.airframe.aerosandbox_python or "not configured",
+                              "output_root": config.airframe.output_root,
+                              "native_cad_runtime": "checked per call (worker reports FreeCAD/AeroSandbox version)"}
+    else:
+        states["airframe"] = {"state": "disabled"}
+
     @server.tool(annotations={"readOnlyHint": True, "destructiveHint": False,
                               "idempotentHint": True, "openWorldHint": False})
     async def unified_get_context() -> dict:
@@ -111,7 +130,8 @@ def create_server(config: Configuration) -> FastMCP:
                         "cad_*": "asset/geometry inspection, provenance, opt-in box revisions",
                         "pcb_*": "live KiCad IPC routing; separate session, board and transactions",
                         "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session",
-                        "drone_*": "opt-in pure-Python heuristic drone sizing (mass/CG, hover propulsion, weight class); no documents"},
+                        "drone_*": "opt-in pure-Python heuristic sizing: mass/CG budget, multirotor hover propulsion, fixed-wing aero/stability/performance, weight class; no documents",
+                        "airframe_*": "opt-in headless FreeCAD airframe build/validation/STEP inspection/PNG previews and AeroSandbox aero cross-check; writes only under airframe.output_root"},
             "units": {"stl": "UNKNOWN", "freecad_length": "mm",
                       "kicad": "read each tool schema; do not forward internal coordinates without conversion"},
             "coordinate_alignment": "explicit user-provided transform required",

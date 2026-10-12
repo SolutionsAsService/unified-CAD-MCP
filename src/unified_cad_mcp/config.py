@@ -26,6 +26,16 @@ class BackendConfig(BaseModel):
         return value
 
 
+class AirframeConfig(BaseModel):
+    """Operator-selected interpreters and the single writable root for airframe_* tools."""
+    model_config = ConfigDict(extra="forbid")
+    freecad_python: str = Field(min_length=1, description="Python with FreeCAD Part/MeshPart, numpy and matplotlib")
+    aerosandbox_python: str | None = Field(default=None, description="Optional Python with aerosandbox + neuralfoil")
+    output_root: str = Field(min_length=1, description="Existing dedicated directory; builds go to <output_root>/<name>/")
+    read_roots: list[str] = Field(default_factory=list, description="Extra existing directories airframe_inspect_step may read")
+    timeout_seconds: float = Field(default=900, gt=0, le=3600, allow_inf_nan=False)
+
+
 class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal[1] = 1
@@ -33,6 +43,8 @@ class Configuration(BaseModel):
     # In-process, pure-Python heuristic drone estimators (drone_*). Off by default so
     # existing catalogs/counts are unchanged; no subprocess, file or network access.
     drone_tools: StrictBool = False
+    # Optional headless airframe CAD/aero tools (airframe_*): separate worker interpreters.
+    airframe: AirframeConfig | None = None
     backends: dict[Literal["kicad", "cad", "pcb", "freecad"], BackendConfig]
 
 
@@ -54,4 +66,15 @@ def load_config(path: Path) -> Configuration:
         if not cwd.is_dir():
             raise ValueError("Backend cwd must be an existing directory")
         backend.cwd = str(cwd)
+    if config.airframe is not None:
+        def directory(value: str) -> str:
+            candidate = Path(value)
+            if not candidate.is_absolute():
+                candidate = path.parent / candidate
+            candidate = candidate.resolve(strict=True)
+            if not candidate.is_dir():
+                raise ValueError(f"airframe directory must exist: {candidate}")
+            return str(candidate)
+        config.airframe.output_root = directory(config.airframe.output_root)
+        config.airframe.read_roots = [directory(v) for v in config.airframe.read_roots]
     return config

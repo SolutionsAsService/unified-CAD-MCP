@@ -23,4 +23,4 @@ packages = ["src/unified_cad_mcp"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-markers = ["backends: opt-in tests against installed pinned upstream servers"]
+markers = ["backends: opt-in tests against installed pinned upstream servers", "airframe: opt-in end-to-end airframe builds needing FreeCAD (and optionally AeroSandbox) interpreters"]
