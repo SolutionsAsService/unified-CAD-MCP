@@ -122,6 +122,8 @@ async def test_real_upstream_default_and_missing_native(tmp_path):
     config=load_config(Path(selected))
     if 'freecad' not in config.backends: pytest.skip('FreeCAD backend required')
     config.backends={'freecad':config.backends['freecad']}
+    # Bootstrap writes this backend disabled by default; this test opts in explicitly.
+    config.backends['freecad'].enabled=True
     config.backends['freecad'].env['UNIFIED_FREECAD_EXPERIMENTAL']='0'
     # Reserve an unlistened local port so this test cannot touch a real GUI.
     with socket.socket() as reserved:
