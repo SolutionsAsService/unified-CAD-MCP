@@ -15,6 +15,8 @@ from fastmcp.server.providers.proxy import FastMCPProxy
 from .config import Configuration, load_config
 from .airframe import create_airframe_server
 from .drone import create_drone_server
+from .kicad_native import detect_kicad
+from .structured import StructuredProxyResults
 
 LOG = logging.getLogger(__name__)
 INSTRUCTIONS = """Unified CAD MCP: one connection, four optional isolated engineering backends.
@@ -30,7 +32,9 @@ KiCad's kicad_design is a firmware/design-intent router, NOT mechanical CAD.
 Names in upstream guidance are backend-local: use the matching kicad_, cad_, pcb_ or freecad_ tool
 from tools/list; operation parameters are unchanged. Use exact resource URIs from
 resources/list (namespaced by FastMCP), not guessed unprefixed upstream URIs.
-STL units are UNKNOWN. FreeCAD length is mm. No automatic coordinate alignment,
+STL has no units: cad_inspect_stl_geometry takes units= (else reads <file>.stl.meta.json
+from our exporters, else ASSUMES mm and says so in result.units) and reports shells and
+internal cavities. cad_* results carry structured_content. FreeCAD length is mm. No automatic coordinate alignment,
 board/enclosure synchronization, material inference, clearance/fit approval or
 cross-backend transaction exists. Preserve UNKNOWN and user-attested evidence.
 Project root is a coordination reference, NOT a filesystem sandbox; KiCad may
@@ -73,12 +77,27 @@ def create_server(config: Configuration) -> FastMCP:
                     active.add(name)
                     states[name] = {"state": "initialized",
                                     "native_cad_runtime": "not_checked"}
+                if name in ("kicad", "pcb"):
+                    states[name]["native_kicad"] = native_kicad()
             try:
                 yield
             finally:
                 active.clear()
 
+    kicad_probe: dict[str, Any] = {}
+
+    def native_kicad() -> dict[str, Any]:
+        # One probe per server start, shared by kicad and pcb; never installs anything.
+        if not kicad_probe:
+            kicad_probe.update(detect_kicad())
+            if kicad_probe["status"] != "available":
+                LOG.warning("Native KiCad %s: %s", kicad_probe["status"], kicad_probe.get("action", ""))
+        return kicad_probe
+
     server = FastMCP("unified-CAD-MCP", instructions=INSTRUCTIONS, lifespan=lifespan)
+    cad_backend = config.backends.get("cad")
+    server.add_middleware(StructuredProxyResults(
+        domains=("cad",), cad_asset_root=(cad_backend.env.get("DESIGN_MCP_ASSET_ROOT") if cad_backend else None)))
     for name in ("kicad", "cad", "pcb", "freecad"):
         backend = config.backends.get(name)
         if backend is None or not backend.enabled:
@@ -132,7 +151,8 @@ def create_server(config: Configuration) -> FastMCP:
                         "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session",
                         "drone_*": "opt-in pure-Python heuristic sizing: mass/CG budget, multirotor hover propulsion, fixed-wing aero/stability/performance, weight class; no documents",
                         "airframe_*": "opt-in headless FreeCAD airframe build/validation/STEP inspection/PNG previews and AeroSandbox aero cross-check; writes only under airframe.output_root"},
-            "units": {"stl": "UNKNOWN", "freecad_length": "mm",
+            "units": {"stl": "not encoded by the format; cad_inspect_stl_geometry resolves units from its units argument, else <file>.stl.meta.json sidecar, else ASSUMED mm (reported in result.units.source)",
+                      "freecad_length": "mm",
                       "kicad": "read each tool schema; do not forward internal coordinates without conversion"},
             "coordinate_alignment": "explicit user-provided transform required",
             "shared_document_transaction": False,

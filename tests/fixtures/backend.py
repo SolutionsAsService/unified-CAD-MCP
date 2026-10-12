@@ -32,6 +32,24 @@ def rich_result(fail: bool = False) -> ToolResult:
                       meta={"fixture_result": "unchanged"}, is_error=fail)
 
 
+@mcp.tool(output_schema=None)
+def text_json(kind: str = "object") -> ToolResult:
+    """Mimic the pinned upstream CAD server: JSON only as text content, no output schema."""
+    payload = {"object": {"domain": DOMAIN, "n": 1}, "list": [1, 2], "plain": None}[kind]
+    text = "not json at all" if payload is None else json.dumps(payload)
+    return ToolResult(content=[TextContent(type="text", text=text)])
+
+
+@mcp.tool(output_schema=None)
+def inspect_stl_geometry(relative_path: str) -> ToolResult:
+    """Mimic upstream: metrics in model units, units UNKNOWN, JSON as text only."""
+    payload = {"path": relative_path, "coordinate_units": "UNKNOWN; STL does not encode units",
+               "bounding_box_model_units": {"minimum": [0, 0, 0], "maximum": [2, 2, 2], "extent": [2, 2, 2]},
+               "surface_area_model_units2": 24.0, "enclosed_volume_model_units3": 7.0,
+               "volume_centroid_model_units": [1, 1, 1]}
+    return ToolResult(content=[TextContent(type="text", text=json.dumps(payload))])
+
+
 @mcp.tool()
 async def wait(seconds: float) -> dict:
     # Persist before waiting so mutation replay is observable.

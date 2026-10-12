@@ -598,6 +598,11 @@ def _main():
                 check("export mesh complete (STL): " + p["name"], ok, None if ok else {"area_mm2": round(mesh.Area, 1), "expected_mm2": area_of[p["name"]]})
                 path = os.path.join(out, "stl", slug(p["name"]) + ".stl")
                 mesh.write(path)
+                # F11: STL has no units; record them next to the file (read by cad_inspect_stl_geometry).
+                with open(path + ".meta.json", "w") as handle:
+                    json.dump({"units": "mm", "format": "unified-cad-mcp/stl-meta@1", "part": p["name"],
+                               "generator": "unified-cad-mcp airframe worker (FreeCAD MeshPart)",
+                               "deflection_mm": used, "triangles": mesh.CountFacets}, handle, indent=1, sort_keys=True)
                 files["stl:" + p["name"]] = path
         viewer = []
         defl = exp.get("viewer_linear_deflection_mm", 1.0)

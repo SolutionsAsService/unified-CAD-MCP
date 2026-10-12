@@ -16,7 +16,9 @@ async def test_namespaces_schemas_annotations_and_persistent_processes(config):
     async with Client(create_server(config)) as client:
         tools = {tool.name: tool for tool in await client.list_tools()}
         assert set(tools) == {"unified_get_context", "kicad_identify", "cad_identify",
-                              "kicad_rich_result", "cad_rich_result", "kicad_wait", "cad_wait"}
+                              "kicad_rich_result", "cad_rich_result", "kicad_wait", "cad_wait",
+                              "kicad_text_json", "cad_text_json", "kicad_inspect_stl_geometry",
+                              "cad_inspect_stl_geometry"}
         assert tools["cad_identify"].input_schema["properties"]["value"]["type"] == "integer"
         assert tools["cad_rich_result"].output_schema == {
             "type": "object", "properties": {"domain": {"type": "string"}},
@@ -66,7 +68,7 @@ async def test_resources_templates_prompts_and_context(config):
         prompt = await client.get_prompt("cad_explain", {"subject": "box"})
         assert prompt.messages[0].content.text == "cad explanation for box"
         context = await client.read_resource("unified://project/context")
-        assert json.loads(context[0].text)["units"]["stl"] == "UNKNOWN"
+        assert "ASSUMED mm" in json.loads(context[0].text)["units"]["stl"]
 
 
 async def test_unavailable_backend_does_not_break_other_domain(config):
