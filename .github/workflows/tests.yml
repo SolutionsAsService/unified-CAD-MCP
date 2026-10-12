@@ -56,4 +56,5 @@ jobs:
           export UNIFIED_AIRFRAME_AEROSANDBOX_PYTHON="$RUNNER_TEMP/asb/bin/python"
           # Stock conda-forge env, no .pth: FreeCAD.so lives in <env>/lib; the worker adds it itself.
           "$UNIFIED_AIRFRAME_FREECAD_PYTHON" -c "import os, sys; sys.path.append(os.path.join(sys.prefix, 'lib')); import FreeCAD, Part, MeshPart; print(FreeCAD.Version()[:3])"
-          python -m pytest -q -m airframe -rs
+          # bash -el activates the micromamba env, so plain python is the FreeCAD env; use setup-python's.
+          "$pythonLocation/bin/python" -m pytest -q -m airframe -rs
