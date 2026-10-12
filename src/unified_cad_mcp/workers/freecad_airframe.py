@@ -5,8 +5,17 @@ Operations: build (parametric fixed-wing airframe from a spec), inspect_step,
 render (matplotlib Agg previews of a viewer-parts JSON). FreeCAD is imported FIRST:
 with conda-forge FreeCAD 26.x, importing FreeCAD after json/math removes those
 names from __main__ (see docs/audit-2026-10-12.md finding 3).
+
+conda-forge FreeCAD installs FreeCAD.so into <env>/lib, which is not on sys.path of a
+stock env. If the first import fails, add that directory and retry, without binding any
+other names in __main__ (so the import-order constraint above still holds). This makes
+a plain `micromamba create -n freecad freecad` interpreter work without a host .pth.
 """
-import FreeCAD  # noqa: E402  (must be first)
+try:
+    import FreeCAD  # noqa: E402  (must be first)
+except ImportError:
+    __import__("sys").path.append(__import__("os").path.join(__import__("sys").prefix, "lib"))
+    import FreeCAD  # noqa: E402
 import Part  # noqa: E402
 
 
