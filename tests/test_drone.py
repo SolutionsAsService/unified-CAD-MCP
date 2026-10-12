@@ -89,7 +89,8 @@ async def test_drone_namespace_is_opt_in_and_validated(tmp_path):
     on = Configuration(project_root=str(tmp_path), backends={}, drone_tools=True)
     async with Client(create_server(on)) as client:
         tools = {t.name: t for t in await client.list_tools()}
-        assert set(tools) == {"unified_get_context", "drone_mass_cg_budget", "drone_propulsion_estimate", "drone_regulatory_weight_class"}
+        assert set(tools) == {"unified_get_context", "drone_mass_cg_budget", "drone_propulsion_estimate", "drone_regulatory_weight_class",
+                              "drone_fixed_wing_analysis"}
         assert all(tools[n].annotations.read_only_hint for n in tools if n.startswith("drone_"))
         result = await client.call_tool("drone_propulsion_estimate", {"all_up_mass_g": 1000, "rotor_count": 4, "prop_diameter_in": 10, "battery_cells": 4, "battery_capacity_mah": 5000})
         assert result.data["hover_flight_time_min"] > 0
@@ -102,3 +103,19 @@ async def test_drone_namespace_is_opt_in_and_validated(tmp_path):
         assert unknown.is_error
         context = (await client.call_tool("unified_get_context")).data
         assert context["backends"]["drone"]["state"] == "builtin" and "drone_*" in context["routing"]
+
+
+def test_mass_budget_accepts_cad_inertia_and_longitudinal_cg_band():
+    from unified_cad_mcp.drone import MassItem, mass_cg_budget
+    tensor = [[0.01, 0.0, 0.001], [0.0, 0.02, 0.0], [0.001, 0.0, 0.03]]
+    r = mass_cg_budget([MassItem(name="wing", mass_g=1000, position_mm=[100, 0, 0], inertia_about_cg_kg_m2=tensor),
+                        MassItem(name="nose", mass_g=1000, position_mm=[-100, 0, 0])], cg_x_range_mm=[-10, 10])
+    # own tensor + parallel axis: each mass 1 kg at 0.1 m from the CG -> 2 * 0.01 kg m^2 about y and z
+    assert r["inertia_about_cg_kg_m2"][0][0] == pytest.approx(0.01)
+    assert r["inertia_about_cg_kg_m2"][1][1] == pytest.approx(0.02 + 0.02)
+    assert r["inertia_about_cg_kg_m2"][0][2] == pytest.approx(0.001)
+    assert r["cg_x_within_range"] is True
+    out = mass_cg_budget([MassItem(name="a", mass_g=10, position_mm=[50, 0, 0])], cg_x_range_mm=[0, 10])
+    assert out["cg_x_within_range"] is False and any("cg_x_range_mm" in w for w in out["warnings"])
+    with pytest.raises(ValueError, match="symmetric"):
+        mass_cg_budget([MassItem(name="bad", mass_g=1, position_mm=[0, 0, 0], inertia_about_cg_kg_m2=[[1, 2, 0], [0, 1, 0], [0, 0, 1]])])

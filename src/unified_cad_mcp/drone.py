@@ -16,6 +16,8 @@ from typing import Annotated, Literal
 from fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
 
+from .fixed_wing import FixedWingInput, analyze as fixed_wing_analyze
+
 G0 = 9.80665  # m/s^2
 INCH = 0.0254
 CELL_NOMINAL_V = {"lipo": 3.7, "lihv": 3.8, "liion": 3.6, "lifepo4": 3.2}
@@ -33,6 +35,8 @@ class MassItem(BaseModel):
     mass_g: float = Field(gt=0, le=1_000_000, allow_inf_nan=False)
     position_mm: Vec3 = Field(description="Item CG in the caller's body frame, mm")
     size_mm: Vec3 | None = Field(default=None, description="Optional uniform solid-box extents (x,y,z) mm for self-inertia; omitted = point mass")
+    inertia_about_cg_kg_m2: Annotated[list[Vec3], Field(min_length=3, max_length=3)] | None = Field(
+        default=None, description="Optional self-inertia tensor about the item's own CG (e.g. from airframe_build_fixed_wing); overrides size_mm")
     category: str = Field(default="other", min_length=1, max_length=60)
 
 
@@ -63,7 +67,8 @@ def _sym_eigenvalues(m: list[list[float]]) -> list[float]:
 
 
 def mass_cg_budget(items: list[MassItem], reference_point_mm: list[float] | None = None,
-                   max_takeoff_mass_g: float | None = None, cg_tolerance_mm: float | None = None) -> dict:
+                   max_takeoff_mass_g: float | None = None, cg_tolerance_mm: float | None = None,
+                   cg_x_range_mm: list[float] | None = None) -> dict:
     if not items:
         raise ValueError("At least one mass item is required")
     names = [i.name for i in items]
@@ -80,7 +85,14 @@ def mass_cg_budget(items: list[MassItem], reference_point_mm: list[float] | None
         for a in range(3):
             for b in range(3):
                 inertia[a][b] += m * ((dd if a == b else 0.0) - d[a] * d[b])
-        if item.size_mm:
+        if item.inertia_about_cg_kg_m2:
+            tensor = item.inertia_about_cg_kg_m2
+            if any(abs(tensor[a][b] - tensor[b][a]) > 1e-9 + 1e-6 * abs(tensor[a][b]) for a in range(3) for b in range(3)):
+                raise ValueError(f"inertia_about_cg_kg_m2 must be symmetric: {item.name}")
+            for a in range(3):
+                for b in range(3):
+                    inertia[a][b] += tensor[a][b]
+        elif item.size_mm:
             if min(item.size_mm) < 0:
                 raise ValueError(f"size_mm must be non-negative: {item.name}")
             lx, ly, lz = (v / 1000 for v in item.size_mm)
@@ -103,7 +115,7 @@ def mass_cg_budget(items: list[MassItem], reference_point_mm: list[float] | None
         "mass_by_category_g": {k: round(v, 6) for k, v in sorted(by_category.items())},
         "mass_fraction_by_category": {k: round(v / total_g, 6) for k, v in sorted(by_category.items())},
         "frame": "caller-defined right-handed body frame, mm; horizontal offset uses x/y, so put z along the thrust axis",
-        "model": "point masses plus optional axis-aligned uniform solid boxes; list wiring, fasteners and adhesive explicitly",
+        "model": "point masses plus optional axis-aligned uniform solid boxes or caller-supplied self-inertia tensors; list wiring, fasteners and adhesive explicitly",
         "warnings": [],
     }
     if max_takeoff_mass_g is not None:
@@ -114,6 +126,12 @@ def mass_cg_budget(items: list[MassItem], reference_point_mm: list[float] | None
         result["cg_within_tolerance"] = horizontal <= cg_tolerance_mm
         if horizontal > cg_tolerance_mm:
             result["warnings"].append("Horizontal CG offset exceeds cg_tolerance_mm; motors will be unevenly loaded at hover")
+    if cg_x_range_mm is not None:
+        lo, hi = sorted(cg_x_range_mm)
+        result["cg_x_within_range"] = lo <= cg[0] <= hi
+        result["cg_x_range_mm"] = [lo, hi]
+        if not result["cg_x_within_range"]:
+            result["warnings"].append("Longitudinal CG is outside cg_x_range_mm (fixed-wing static-margin band)")
     return result
 
 
@@ -241,14 +259,15 @@ def create_drone_server() -> FastMCP:
         reference_point_mm: Vec3 | None = None,
         max_takeoff_mass_g: Annotated[float | None, Field(gt=0, allow_inf_nan=False)] = None,
         cg_tolerance_mm: Annotated[float | None, Field(ge=0, allow_inf_nan=False)] = None,
+        cg_x_range_mm: Annotated[list[Finite] | None, Field(min_length=2, max_length=2, description="Fixed-wing: allowed longitudinal CG band [min, max] mm, e.g. drone_fixed_wing_analysis stability.cg_range_for_margin_x_mm")] = None,
     ) -> dict:
-        """Mass, CG and inertia budget from a listed bill of masses (point masses / solid boxes).
+        """Mass, CG and inertia budget from a listed bill of masses (point masses / solid boxes / supplied inertia tensors).
 
         Returns total mass, CG, CG offset from the reference point (usually the
         thrust centre), inertia tensor about the CG and principal moments. This
         is a budget from caller-listed items, NOT CAD mass-property extraction.
         """
-        return mass_cg_budget(items, reference_point_mm, max_takeoff_mass_g, cg_tolerance_mm)
+        return mass_cg_budget(items, reference_point_mm, max_takeoff_mass_g, cg_tolerance_mm, cg_x_range_mm)
 
     @mcp.tool(name="propulsion_estimate", annotations=READ_ONLY)
     def propulsion_estimate_tool(
@@ -285,6 +304,16 @@ def create_drone_server() -> FastMCP:
             temperature_offset_c=temperature_offset_c, coaxial=coaxial,
             max_thrust_per_motor_g=max_thrust_per_motor_g, motor_max_current_a=motor_max_current_a,
             battery_c_rating=battery_c_rating)
+
+    @mcp.tool(name="fixed_wing_analysis", annotations=READ_ONLY)
+    def fixed_wing_analysis_tool(aircraft: FixedWingInput) -> dict:
+        """HEURISTIC fixed-wing UAV analysis: planform, tail volumes (V-tail via Purser-Campbell), neutral point and static margin, parasite-drag build-up, polar, stall/min-power/min-drag speeds, electric endurance/range, climb, static thrust-to-weight and spar root stress, with pass/fail checks.
+
+        Closed-form textbook methods (Raymer; NACA Rep. 823; Munk/Lamb); every
+        result lists its assumptions and sources. Cross-check with
+        airframe_aero_crosscheck (AeroSandbox) and flight data.
+        """
+        return fixed_wing_analyze(aircraft)
 
     @mcp.tool(name="regulatory_weight_class", annotations=READ_ONLY)
     def regulatory_weight_class_tool(
