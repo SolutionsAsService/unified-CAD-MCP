@@ -129,6 +129,34 @@ class Requirements(BaseModel):
     tail_volume_v_range: tuple[Finite, Finite] = (0.02, 0.05)
 
 
+class LaunchMount(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, Field(min_length=1, max_length=120)]
+    mass_g: Positive
+    allowable_n: Positive
+
+
+class Launch(BaseModel):
+    """Catapult / rail launch case: axial acceleration on the airframe and on every listed mount."""
+    model_config = ConfigDict(extra="forbid")
+    accel_g: Annotated[float, Field(gt=0, le=60, allow_inf_nan=False)]
+    end_speed_m_s: Positive
+    min_speed_over_stall: Annotated[float, Field(ge=1.0, le=2.0, allow_inf_nan=False)] = 1.2
+    max_stroke_m: Positive | None = None
+    mounts: list[LaunchMount] = Field(default_factory=list, max_length=50)
+
+
+class NeutralPointCrosscheck(BaseModel):
+    """An independent neutral point (e.g. AeroSandbox VLM) to confirm the closed form, which matters for swept wings."""
+    model_config = ConfigDict(extra="forbid")
+    neutral_point_x_mm: Finite
+    source: Annotated[str, Field(min_length=1, max_length=120)]
+    tolerance_mac: Annotated[float, Field(gt=0, le=0.5, allow_inf_nan=False)] = 0.05
+    includes_fuselage: bool = Field(default=False, description="VLM / lifting-surface methods usually omit the fuselage; then the "
+                                    "comparison uses the closed-form wing+tail neutral point and the closed-form fuselage shift is "
+                                    "added to the reference before computing its static margin")
+
+
 class FixedWingInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mass_g: Positive
@@ -149,6 +177,8 @@ class FixedWingInput(BaseModel):
     limit_load_factor: Annotated[float, Field(ge=1, le=15, allow_inf_nan=False)] = 4.0
     safety_factor: Annotated[float, Field(ge=1, le=3, allow_inf_nan=False)] = 1.5
     spar: Spar | None = None
+    launch: Launch | None = None
+    neutral_point_crosscheck: NeutralPointCrosscheck | None = None
     requirements: Requirements = Field(default_factory=Requirements)
 
 
@@ -424,6 +454,32 @@ def analyze(data: FixedWingInput) -> dict:
             "spar_model": "single tube carries all bending over the full semispan (conservative; skins and shear webs ignored); tip deflection assumes a uniform tube under uniform load",
         })
 
+    launch = None
+    if data.launch:
+        L = data.launch
+        a = L.accel_g * 9.80665
+        launch = {"accel_g": L.accel_g, "end_speed_m_s": L.end_speed_m_s,
+                  "stroke_m": round(L.end_speed_m_s ** 2 / (2 * a), 3),
+                  "end_speed_over_stall": round(L.end_speed_m_s / v_stall, 3),
+                  "airframe_axial_load_ultimate_n": round(data.mass_g / 1000 * a * data.safety_factor, 1),
+                  "mounts": [{"name": m.name, "load_ultimate_n": round(m.mass_g / 1000 * a * data.safety_factor, 2),
+                              "allowable_n": m.allowable_n,
+                              "margin_of_safety": round(m.allowable_n / (m.mass_g / 1000 * a * data.safety_factor) - 1, 3)}
+                             for m in L.mounts],
+                  "model": "rigid body, constant acceleration over the stroke, ultimate = mass x accel x safety factor"}
+    np_check = None
+    if data.neutral_point_crosscheck:
+        c = data.neutral_point_crosscheck
+        closed = x_np if c.includes_fuselage else x_np_no_fus
+        fus_shift = 0.0 if c.includes_fuselage else x_np - x_np_no_fus
+        diff = (closed - c.neutral_point_x_mm) / wp["mac_mm"]
+        ref_full = c.neutral_point_x_mm + fus_shift
+        np_check = {"closed_form_x_mm": round(closed, 2), "closed_form_basis": "with fuselage" if c.includes_fuselage else "wing + tail (no fuselage), like the reference",
+                    "reference_x_mm": c.neutral_point_x_mm, "source": c.source,
+                    "difference_mac": round(diff, 4), "tolerance_mac": c.tolerance_mac,
+                    "reference_with_fuselage_shift_x_mm": round(ref_full, 2),
+                    "static_margin_with_reference": round((ref_full - data.cg_x_mm) / wp["mac_mm"], 4)}
+
     checks = []
     req = data.requirements
 
@@ -442,6 +498,18 @@ def analyze(data: FixedWingInput) -> dict:
         check("static_thrust_to_weight", perf_extra["static_thrust_to_weight"], perf_extra["static_thrust_to_weight"] >= req.min_thrust_to_weight, req.min_thrust_to_weight)
     if "spar_margin_of_safety" in structure:
         check("spar_margin_of_safety", structure["spar_margin_of_safety"], structure["spar_margin_of_safety"] >= 0, 0)
+    if launch:
+        L = data.launch
+        check("launch_end_speed_over_stall", launch["end_speed_over_stall"], launch["end_speed_over_stall"] >= L.min_speed_over_stall, L.min_speed_over_stall)
+        if L.max_stroke_m:
+            check("launch_stroke_m", launch["stroke_m"], launch["stroke_m"] <= L.max_stroke_m, L.max_stroke_m)
+        for m in launch["mounts"]:
+            check("launch_mount_margin: " + m["name"], m["margin_of_safety"], m["margin_of_safety"] >= 0, 0)
+    if np_check:
+        check("neutral_point_crosscheck_mac", np_check["difference_mac"], abs(np_check["difference_mac"]) <= np_check["tolerance_mac"], np_check["tolerance_mac"])
+        sm_ref = np_check["static_margin_with_reference"]
+        check("static_margin_with_reference_np", sm_ref, req.static_margin_min <= sm_ref <= req.static_margin_max,
+              [req.static_margin_min, req.static_margin_max])
     for item in checks:
         if not item["pass"]:
             warnings.append(f"Check failed: {item['name']} = {item['value']} (limit {item['limit']})")
@@ -488,6 +556,8 @@ def analyze(data: FixedWingInput) -> dict:
             "loiter": loiter, "cruise": cruise, "power_curve": curve, **perf_extra,
         },
         "structure": structure,
+        **({"launch": launch} if launch else {}),
+        **({"neutral_point_crosscheck": np_check} if np_check else {}),
         "checks": checks,
         "all_checks_pass": all(item["pass"] for item in checks),
         "assumptions": {

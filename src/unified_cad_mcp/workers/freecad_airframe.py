@@ -306,8 +306,27 @@ def _main():
         wg = spec["wing"]
         dih = math.tan(math.radians(wg.get("dihedral_deg", 0.0)))
         z0 = wg.get("z_root_mm", 0.0)
-        wing = surface_solid(wg["stations"], wg.get("airfoil", "2412"),
-                             lambda s: (lambda x, z: V(x, s, z0 + s * dih + z)))
+        # optional per-station z_mm lifts sections above the dihedral line (gull / upswept outer panels)
+        zoff = {st["s_mm"]: st.get("z_mm", 0.0) for st in wg["stations"]}
+        for st in wg.get("root_fairing", {}).get("stations", []):
+            zoff.setdefault(st["s_mm"], st.get("z_mm", 0.0))
+        wing_at = lambda s: (lambda x, z: V(x, s, z0 + s * dih + zoff.get(s, 0.0) + z))
+        wing = surface_solid(wg["stations"], wg.get("airfoil", "2412"), wing_at)
+        fair = wg.get("root_fairing")
+        if fair:
+            # blended wing-body: a thicker, longer-chord loft from inside the fuselage out to a wing station,
+            # fused into the wing so the panel and its fairing are one part with one mass model
+            fsol = surface_solid(fair["stations"], fair.get("airfoil", wg.get("airfoil", "2412")), wing_at)
+            wing = wing.fuse(fsol)
+            try:
+                wing = wing.removeSplitter()
+            except Exception:
+                pass
+            if wing.Solids:
+                wing = wing.Solids[0] if len(wing.Solids) == 1 else wing
+        tip = wg["stations"][-1]
+        tip_root = V(0, tip["s_mm"], z0 + tip["s_mm"] * dih + zoff.get(tip["s_mm"], 0.0))
+        wing_oml_for_fin = wing.copy()
         wing = wing.cut(fuselage)
         ail = wg.get("aileron")
         aileron = None
@@ -326,6 +345,20 @@ def _main():
                 ail.get("note", "Aileron split from the wing loft at the hinge line"), (60, 300, -20))
             add(an + " · starboard", an, mirror_y(aileron), wg["construction"], ail.get("color", "#9fb3bf"), "control surface",
                 ail.get("note", "Aileron split from the wing loft at the hinge line"), (60, -300, -20))
+
+        fin = wg.get("tip_fin")
+        if fin:
+            # upturned tip / winglet: lofted in a local frame (s along the fin), canted up by cant_deg from the
+            # wing plane about +x at the tip station, then trimmed by the wing so the two parts meet without overlap
+            flocal = surface_solid(fin["stations"], fin.get("airfoil", "0008"), lambda s: (lambda x, z: V(x, s, z)))
+            flocal.rotate(V(0, 0, 0), V(1, 0, 0), fin["cant_deg"])
+            flocal.translate(tip_root)
+            fpanel = flocal.cut(wing_oml_for_fin)
+            fname = fin.get("name", "Wingtip fin")
+            add(fname + " · port", fname, fpanel, wg["construction"], fin.get("color", wg.get("color", "#d5dade")), "wing",
+                fin.get("note", "Upturned wingtip fin lofted from the tip station"), (0, 320, 60))
+            add(fname + " · starboard", fname, mirror_y(fpanel), wg["construction"], fin.get("color", wg.get("color", "#d5dade")), "wing",
+                fin.get("note", "Upturned wingtip fin lofted from the tip station"), (0, -320, 60))
 
         # V-tail (local panel frame, then rotated by dihedral about +x)
         tl = spec["tail"]

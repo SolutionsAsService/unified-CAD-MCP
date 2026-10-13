@@ -135,3 +135,24 @@ def test_inverted_v_tail_is_accepted_and_matches_upright_areas():
     assert inv["stability"]["neutral_point_x_mm"] == pytest.approx(up["stability"]["neutral_point_x_mm"])
     assert inv["geometry"]["vertical_tail_volume"] == pytest.approx(up["geometry"]["vertical_tail_volume"])
     assert inv["geometry"]["tails"][0]["inverted_v"] is True and up["geometry"]["tails"][0]["inverted_v"] is False
+
+
+def test_launch_case_and_neutral_point_crosscheck():
+    r = glider(launch=dict(accel_g=12, end_speed_m_s=18, max_stroke_m=2.0,
+                           mounts=[dict(name="battery tray", mass_g=1700, allowable_n=500),
+                                   dict(name="weak gimbal mount", mass_g=600, allowable_n=50)]))
+    L = r["launch"]
+    assert L["stroke_m"] == pytest.approx(18 ** 2 / (2 * 12 * 9.80665), abs=1e-3)
+    assert L["mounts"][0]["load_ultimate_n"] == pytest.approx(1.7 * 12 * 9.80665 * 1.5, abs=0.01)
+    names = {c["name"]: c["pass"] for c in r["checks"]}
+    assert names["launch_mount_margin: battery tray"] is True
+    assert names["launch_mount_margin: weak gimbal mount"] is False
+    assert names["launch_stroke_m"] is True
+    np_x = r["stability"]["neutral_point_without_fuselage_x_mm"]  # VLM-like references omit the fuselage
+    mac = r["geometry"]["mac_mm"]
+    ok = glider(neutral_point_crosscheck=dict(neutral_point_x_mm=np_x + 0.02 * mac, source="vlm"))
+    bad = glider(neutral_point_crosscheck=dict(neutral_point_x_mm=np_x + 0.2 * mac, source="vlm"))
+    assert {c["name"]: c["pass"] for c in ok["checks"]}["neutral_point_crosscheck_mac"] is True
+    assert {c["name"]: c["pass"] for c in bad["checks"]}["neutral_point_crosscheck_mac"] is False
+    shift = r["stability"]["neutral_point_x_mm"] - np_x
+    assert ok["neutral_point_crosscheck"]["reference_with_fuselage_shift_x_mm"] == pytest.approx(np_x + 0.02 * mac + shift, abs=0.02)

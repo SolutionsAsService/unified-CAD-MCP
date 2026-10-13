@@ -71,6 +71,15 @@ def _spec_errors(spec: dict) -> list[str]:
             errors.append(f"wing.stations[{i}].chord_mm must be > 0")
     if len(spec["wing"].get("stations", [])) < 2:
         errors.append("wing.stations needs at least 2 stations")
+    fin = spec["wing"].get("tip_fin")
+    if fin is not None:
+        if len(fin.get("stations", [])) < 2 or any(st.get("chord_mm", 0) <= 0 for st in fin.get("stations", [])):
+            errors.append("wing.tip_fin.stations needs at least 2 stations with chord_mm > 0")
+        if not isinstance(fin.get("cant_deg"), (int, float)) or not 0 < fin["cant_deg"] <= 90:
+            errors.append("wing.tip_fin.cant_deg must be in (0, 90] (angle up from the wing plane)")
+    fair = spec["wing"].get("root_fairing")
+    if fair is not None and (len(fair.get("stations", [])) < 2 or any(st.get("chord_mm", 0) <= 0 for st in fair.get("stations", []))):
+        errors.append("wing.root_fairing.stations needs at least 2 stations with chord_mm > 0")
     if len(spec["fuselage"].get("stations", [])) < 3:
         errors.append("fuselage.stations needs at least 3 stations")
     if spec["tail"].get("type") != "v":

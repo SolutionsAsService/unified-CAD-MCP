@@ -155,3 +155,15 @@ async def test_reference_drone_end_to_end(tmp_path):
                                                                          "cg_mm": rep["totals"]["cg_mm"], "velocity_m_s": 12})).structured_content
             assert aero["aerobuildup"]["CL"] == pytest.approx(aero["trim_target_cl"], abs=2e-3)
             assert aero["vlm"]["x_np"] > 0
+
+
+def test_tip_fin_and_root_fairing_are_validated():
+    good = spec()
+    good["wing"]["tip_fin"] = {"cant_deg": 70, "stations": [{"s_mm": 0, "x_le_mm": 600, "chord_mm": 150}, {"s_mm": 120, "x_le_mm": 680, "chord_mm": 80}]}
+    good["wing"]["root_fairing"] = {"stations": [{"s_mm": 0, "x_le_mm": 450, "chord_mm": 420}, {"s_mm": 120, "x_le_mm": 540, "chord_mm": 280}]}
+    assert _spec_errors(good) == []
+    bad = spec()
+    bad["wing"]["tip_fin"] = {"cant_deg": 120, "stations": [{"s_mm": 0, "x_le_mm": 0, "chord_mm": 0}]}
+    bad["wing"]["root_fairing"] = {"stations": []}
+    errors = "\n".join(_spec_errors(bad))
+    assert "tip_fin.stations" in errors and "cant_deg" in errors and "root_fairing.stations" in errors
