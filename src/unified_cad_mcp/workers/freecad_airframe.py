@@ -504,18 +504,26 @@ def _main():
                 other = p["name"][: -len(" · port")] + " · starboard"
                 a = next(r for r in rows if r["name"] == p["name"])
                 b = next(r for r in rows if r["name"] == other)
-                ok = abs(a["mass_g"] - b["mass_g"]) <= 1e-6 * max(1, a["mass_g"]) and \
-                    abs(a["cg_mm"][0] - b["cg_mm"][0]) < 1e-3 and abs(a["cg_mm"][1] + b["cg_mm"][1]) < 1e-3 and \
-                    abs(a["cg_mm"][2] - b["cg_mm"][2]) < 1e-3
+                # Mirror images are tessellated independently, so their integrals differ by mesh noise.
+                # Tolerances follow the mass-mesh chordal deviation (CG) and its relative volume error (mass).
+                tol = 0.1 * MESH_DEFLECTION
+                ok = abs(a["mass_g"] - b["mass_g"]) <= 1e-4 * max(1, a["mass_g"]) and \
+                    abs(a["cg_mm"][0] - b["cg_mm"][0]) < tol and abs(a["cg_mm"][1] + b["cg_mm"][1]) < tol and \
+                    abs(a["cg_mm"][2] - b["cg_mm"][2]) < tol
                 check("mirror symmetry: " + p["base"], ok)
         clearance_min = spec.get("validation", {}).get("min_wall_clearance_mm", 0.0)
         for p in parts:
             if not p["inside"]:
                 continue
-            containers = [oml[n] for n in p["inside"]]
-            container = containers[0] if len(containers) == 1 else containers[0].fuse(containers[1:])
+            # No container-container fuse: fusing a wing that was cut by the fuselage leaves coincident faces,
+            # and on the mirrored (starboard) side that boolean returned an empty solid (HALRO 2.3: 0 % contained).
+            # Take what lies in each container in turn and remove it before testing the next.
             vol = mesh_volume(p["shape"])
-            inside = mesh_volume(p["shape"].common(container)) / vol
+            rest, inside_vol = p["shape"], 0.0
+            for n in p["inside"]:
+                inside_vol += mesh_volume(rest.common(oml[n]))
+                rest = rest.cut(oml[n])
+            inside = inside_vol / vol
             detail = {"inside_fraction": round(inside, 5), "containers": p["inside"]}
             ok = inside >= 0.999
             if clearance_min and p["role"] == "component" and fus_name in p["inside"]:

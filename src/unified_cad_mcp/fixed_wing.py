@@ -68,7 +68,7 @@ class Wing(Surface):
 
 class TailSurface(Surface):
     role: Literal["v_tail", "horizontal", "vertical"]
-    dihedral_deg: Finite = Field(default=0, ge=0, le=90, description="V-tail panel angle above horizontal")
+    dihedral_deg: Finite = Field(default=0, ge=-90, le=90, description="V-tail panel angle from horizontal; negative = inverted V (Λ). Purser-Campbell areas use cos²/sin², so the sign only changes roll-yaw coupling, which is not modelled")
     efficiency: Annotated[float, Field(gt=0.3, le=1.0, allow_inf_nan=False)] = 0.9
 
 
@@ -292,7 +292,7 @@ def analyze(data: FixedWingInput) -> dict:
                           "mac_mm": round(tp["mac_mm"], 2), "x_ac_mm": round(x_ac, 2),
                           "aspect_ratio_unfolded": round(ar_unfolded, 3), "cl_alpha_per_rad": round(cla_t, 4),
                           "effective_horizontal_area_mm2": round(s_h, 1), "effective_vertical_area_mm2": round(s_v, 1),
-                          "dihedral_deg": t.dihedral_deg})
+                          "dihedral_deg": t.dihedral_deg, "inverted_v": t.role == "v_tail" and t.dihedral_deg < 0})
         tail_wetted.append((t, tp, area * (1.977 + 0.52 * t.thickness_ratio)))
     x_ac_h = x_ac_h_weighted / s_h_eff if s_h_eff else None
     x_ac_v = x_ac_v_weighted / s_v_eff if s_v_eff else None

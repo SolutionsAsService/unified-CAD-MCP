@@ -126,3 +126,12 @@ async def test_fixed_wing_tool_is_exposed_over_mcp(tmp_path):
         assert result.structured_content["geometry"]["wing_span_m"] == 3.0
         bad = await client.call_tool("drone_fixed_wing_analysis", {"aircraft": {**payload, "mass_g": -1}}, raise_on_error=False)
         assert bad.is_error
+
+
+def test_inverted_v_tail_is_accepted_and_matches_upright_areas():
+    st = [dict(s_mm=0, x_le_mm=1350, chord_mm=250), dict(s_mm=450, x_le_mm=1430, chord_mm=170)]
+    up = glider(tails=[dict(role="v_tail", dihedral_deg=40, stations=st)])
+    inv = glider(tails=[dict(role="v_tail", dihedral_deg=-40, stations=st)])
+    assert inv["stability"]["neutral_point_x_mm"] == pytest.approx(up["stability"]["neutral_point_x_mm"])
+    assert inv["geometry"]["vertical_tail_volume"] == pytest.approx(up["geometry"]["vertical_tail_volume"])
+    assert inv["geometry"]["tails"][0]["inverted_v"] is True and up["geometry"]["tails"][0]["inverted_v"] is False
