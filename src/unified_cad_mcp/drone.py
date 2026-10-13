@@ -17,6 +17,7 @@ from fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
 
 from .fixed_wing import FixedWingInput, analyze as fixed_wing_analyze
+from .rf_layout import LayoutInput, antenna_layout_check
 
 G0 = 9.80665  # m/s^2
 INCH = 0.0254
@@ -314,6 +315,13 @@ def create_drone_server() -> FastMCP:
         airframe_aero_crosscheck (AeroSandbox) and flight data.
         """
         return fixed_wing_analyze(aircraft)
+
+    @mcp.tool(name="rf_antenna_layout_check", annotations=READ_ONLY)
+    def rf_antenna_layout_check_tool(layout: LayoutInput) -> dict:
+        """HEURISTIC antenna-layout check for vehicle trackers and small RF nodes: monopole orientation vs 'up',
+        electrical length vs a quarter wave at the lowest band, cellular main/diversity spacing in wavelengths,
+        GNSS patch sky view and clearance from cellular elements. Geometry rules only, not RF performance."""
+        return antenna_layout_check(layout)
 
     @mcp.tool(name="regulatory_weight_class", annotations=READ_ONLY)
     def regulatory_weight_class_tool(
