@@ -7,6 +7,8 @@ trusted operator config ("airframe" section):
   Used for airframe_build_fixed_wing, airframe_inspect_step, airframe_render_preview.
 - aerosandbox_python (optional): a Python with AeroSandbox (MIT) + NeuralFoil.
   Used for airframe_aero_crosscheck.
+- openvsp_python + openvsp_root (optional): OpenVSP (NASA Open Source Agreement 1.3)
+  Python API and VSPAERO. Used for airframe_vspaero_analysis.
 
 Writes go only to <output_root>/<output_name>/ (output_name is a slug). Reads are
 limited to output_root plus optional read_roots. No shell, no network. One build at
@@ -110,12 +112,12 @@ def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
             raise ToolError("output_name must match ^[a-z0-9][a-z0-9._-]{0,63}$ (no path separators)")
         return root / output_name
 
-    async def run(python: str | None, worker: str, request: dict, what: str) -> dict:
+    async def run(python: str | None, worker: str, request: dict, what: str, extra_env: dict | None = None) -> dict:
         if not python:
             raise ToolError(f"{what} needs an interpreter that is not configured in the 'airframe' config section")
         env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "HOME": os.environ.get("HOME", "/tmp"),
                "LANG": "C.UTF-8", "MPLBACKEND": "Agg", "MPLCONFIGDIR": tempfile.gettempdir() + "/unified-airframe-mpl",
-               "PYTHONDONTWRITEBYTECODE": "1"}
+               "PYTHONDONTWRITEBYTECODE": "1", **(extra_env or {})}
         try:
             proc = await asyncio.create_subprocess_exec(python, str(WORKERS / worker), stdin=asyncio.subprocess.PIPE,
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env=env)
@@ -237,5 +239,39 @@ def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
         return await run(cfg.aerosandbox_python, "aerosandbox_aero.py",
                          {"spec": spec, "mass_g": mass_g, "cg_mm": cg_mm, "velocity_m_s": velocity_m_s, "altitude_m": altitude_m},
                          "airframe_aero_crosscheck")
+
+    @mcp.tool(name="vspaero_analysis", annotations=WRITE)
+    async def vspaero_analysis(
+        spec: Annotated[dict[str, Any], Field(description="Same fixed-wing airframe spec used for the build")],
+        output_name: Annotated[str, Field(description="Slug; the .vsp3 model and VSPAERO files go to <output_root>/<output_name>/vspaero/")],
+        cg_mm: Vec3,
+        velocity_m_s: Annotated[float, Field(gt=1, le=100, allow_inf_nan=False)],
+        mass_g: Annotated[float | None, Field(gt=0, le=150_000, allow_inf_nan=False)] = None,
+        method: Literal["vlm", "panel"] = "vlm",
+        alpha_deg: Annotated[list[Finite], Field(min_length=2, max_length=30)] = [-4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0],
+        include_fuselage: bool = True,
+        altitude_m: Annotated[float, Field(ge=-500, le=11000, allow_inf_nan=False)] = 0.0,
+        wake_iterations: Annotated[int, Field(ge=1, le=10)] = 3,
+        threads: Annotated[int, Field(ge=1, le=16)] = 2,
+    ) -> dict:
+        """Third independent aero check with OpenVSP/VSPAERO (NASA): rebuild wing, V-tail and fuselage in OpenVSP, run a VSPAERO alpha sweep (VLM or thick-surface panel) and OpenVSP Parasite Drag build-up.
+
+        Returns lift-curve slope, CMy slope, neutral point and static margin about cg_mm,
+        trim alpha/CDi/L-D for mass_g, CD0 per component, and the raw polar. VSPAERO is
+        inviscid (CDi only); CD0 is a flat-plate Cf x form factor x Swet build-up.
+        Control surfaces, propeller, gaps and protuberances are not modelled.
+        """
+        errors = _spec_errors(spec)
+        if errors:
+            raise ToolError("Invalid airframe spec:\n- " + "\n- ".join(errors))
+        if not cfg.openvsp_root or not Path(cfg.openvsp_root, "vspaero").is_file():
+            raise ToolError("airframe_vspaero_analysis needs airframe.openvsp_root pointing at an OpenVSP install with a vspaero binary "
+                            "(https://openvsp.org/download.php; the Ubuntu .deb can be unpacked without sudo: dpkg-deb -x)")
+        work = build_dir(output_name) / "vspaero"
+        extra = {"LD_LIBRARY_PATH": cfg.openvsp_library_path} if cfg.openvsp_library_path else {}
+        return await run(cfg.openvsp_python, "openvsp_aero.py", {
+            "openvsp_root": cfg.openvsp_root, "spec": spec, "work_dir": str(work), "cg_mm": cg_mm, "velocity_m_s": velocity_m_s,
+            "mass_g": mass_g, "method": method, "alpha_deg": alpha_deg, "include_fuselage": include_fuselage,
+            "altitude_m": altitude_m, "wake_iterations": wake_iterations, "threads": threads}, "airframe_vspaero_analysis", extra)
 
     return mcp

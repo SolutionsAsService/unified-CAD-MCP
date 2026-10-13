@@ -19,6 +19,9 @@ from unified_cad_mcp.server import create_server
 FIXTURE = Path(__file__).parent / "fixtures" / "reference-glider.airframe.json"
 FREECAD = os.environ.get("UNIFIED_AIRFRAME_FREECAD_PYTHON")
 ASB = os.environ.get("UNIFIED_AIRFRAME_AEROSANDBOX_PYTHON")
+VSP_PY = os.environ.get("UNIFIED_AIRFRAME_OPENVSP_PYTHON")
+VSP_ROOT = os.environ.get("UNIFIED_AIRFRAME_OPENVSP_ROOT")
+VSP_LIB = os.environ.get("UNIFIED_AIRFRAME_OPENVSP_LIBRARY_PATH")
 
 
 def spec():
@@ -63,7 +66,8 @@ async def test_airframe_tools_guard_paths_names_and_missing_runtime(tmp_path):
     (tmp_path / "secret.step").write_text("x")
     async with Client(mcp) as client:
         names = {t.name for t in await client.list_tools()}
-        assert {"airframe_build_fixed_wing", "airframe_inspect_step", "airframe_render_preview", "airframe_aero_crosscheck"} <= names
+        assert {"airframe_build_fixed_wing", "airframe_inspect_step", "airframe_render_preview", "airframe_aero_crosscheck",
+                "airframe_vspaero_analysis"} <= names
         ctx = (await client.call_tool("unified_get_context", {})).structured_content
         assert ctx["backends"]["airframe"]["state"] == "builtin"
         r = await client.call_tool("airframe_inspect_step", {"path": "../secret.step"}, raise_on_error=False)
@@ -80,6 +84,35 @@ async def test_airframe_tools_guard_paths_names_and_missing_runtime(tmp_path):
         assert r.is_error and "interpreter not found" in r.content[0].text  # a failed build stays replaceable
         r = await client.call_tool("airframe_aero_crosscheck", {"spec": spec(), "mass_g": 1000, "cg_mm": [0, 0, 0], "velocity_m_s": 12}, raise_on_error=False)
         assert r.is_error and "not configured" in r.content[0].text
+        r = await client.call_tool("airframe_vspaero_analysis", {"spec": spec(), "output_name": "vsp", "cg_mm": [60, 0, 0], "velocity_m_s": 12},
+                                   raise_on_error=False)
+        assert r.is_error and "openvsp_root" in r.content[0].text and "dpkg-deb -x" in r.content[0].text
+
+
+@pytest.mark.airframe
+@pytest.mark.skipif(not (VSP_PY and VSP_ROOT), reason="UNIFIED_AIRFRAME_OPENVSP_PYTHON/_ROOT not set")
+@pytest.mark.asyncio
+async def test_vspaero_reference_glider(tmp_path):
+    out = tmp_path / "airframe"
+    out.mkdir()
+    cfg = Configuration(project_root=str(tmp_path), backends={}, airframe=AirframeConfig(
+        freecad_python="/nonexistent/python", output_root=str(out), openvsp_python=VSP_PY, openvsp_root=VSP_ROOT,
+        openvsp_library_path=VSP_LIB))
+    async with Client(create_server(cfg)) as client:
+        r = await client.call_tool("airframe_vspaero_analysis", {"spec": spec(), "output_name": "ref", "cg_mm": [60, 0, 0],
+                                                                "velocity_m_s": 12, "mass_g": 600, "alpha_deg": [-2, 0, 2, 4, 6]})
+        res = r.structured_content
+        if "result" in res and isinstance(res["result"], dict):
+            res = res["result"]
+    v = res["vspaero"]
+    # Rectangular AR-5 wing: Helmbold 2*pi*A/(2+sqrt(A^2+4)) ~ 4.0 /rad for the wing alone; the V-tail adds a little
+    # lift on the wing reference area, so VSPAERO's whole-aircraft slope must land in 3.5..5.0 /rad (measured 4.39).
+    assert 3.5 < v["CL_alpha_per_rad"] < 5.0
+    assert v["dCm_dCL"] < 0 and 0 < v["static_margin"] < 0.4  # statically stable with the CG at 60 mm
+    assert v["trim"]["CL"] > 0 and -2 < v["trim"]["alpha_deg"] < 8
+    pd = res["parasite_drag"]
+    assert 0.01 < pd["CD0"] < 0.05 and set(pd["Comp_Label"]) == {"wing", "v_tail", "fuselage"}
+    assert (out / "ref" / "vspaero").is_dir()
 
 
 @pytest.mark.airframe
