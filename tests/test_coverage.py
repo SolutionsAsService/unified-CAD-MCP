@@ -12,7 +12,7 @@ from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
 
 from unified_cad_mcp.config import load_config, BackendConfig
-from unified_cad_mcp.structured import GENERIC_OUTPUT_SCHEMA
+from unified_cad_mcp.structured import GENERIC_OUTPUT_SCHEMA, STL_TOOL, UNITS_PARAMETER
 from unified_cad_mcp.pcb_adapter import adapted_client
 from unified_cad_mcp.server import create_server
 
@@ -115,10 +115,13 @@ async def test_every_upstream_schema_matches_unified_wire(tmp_path):
             for original in data['wire']['tools']:
                 proxied=tools[backend+'_'+original['name']]
                 for field in ['inputSchema','outputSchema','annotations','description']:
-                    want=original.get(field)
-                    # structured.py gives schema-less upstream tools the generic object schema (structuredContent).
+                    want,got=original.get(field),proxied.get(field)
+                    # structured.py's documented wire extensions: schema-less upstream tools get the generic
+                    # object outputSchema, and cad_inspect_stl_geometry gains an optional 'units' argument.
                     allowed=[want,GENERIC_OUTPUT_SCHEMA] if field=='outputSchema' and want is None else [want]
-                    assert proxied.get(field) in allowed, (backend,original['name'],field)
+                    if (backend,original['name'],field)==('cad',STL_TOOL,'inputSchema'):
+                        assert got['properties'].pop('units')==UNITS_PARAMETER
+                    assert got in allowed, (backend,original['name'],field)
         # Actual upstream error payload, without native connection or mocks.
         unavailable=await c.call_tool('pcb_get_nets',raise_on_error=False)
         assert 'not connected' in unavailable.content[0].text.lower()
