@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import signal
 import subprocess
 from typing import Any
 
@@ -22,12 +23,26 @@ INSTALL_HINT = (
 
 
 def _run(command: list[str], timeout: float) -> tuple[int | None, str]:
+    # Own process group: on timeout kill helpers too. subprocess.run(timeout=) kills only the child and then
+    # waits for EOF on pipes a surviving grandchild (dbus/X helpers of a GUI build) may hold open forever.
     try:
-        completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
-                                   stdin=subprocess.DEVNULL)
-    except (OSError, subprocess.SubprocessError) as error:
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                text=True, start_new_session=True)
+    except OSError as error:
         return None, type(error).__name__
-    return completed.returncode, (completed.stdout or completed.stderr).strip()[:200]
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError:
+            proc.kill()
+        try:
+            proc.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass
+        return None, "TimeoutExpired"
+    return proc.returncode, (out or err).strip()[:200]
 
 
 def detect_kicad(path: str | None = None, python: str | None = None, timeout: float = 10.0) -> dict[str, Any]:

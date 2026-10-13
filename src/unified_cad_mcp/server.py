@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 import json
 import logging
@@ -13,10 +14,11 @@ from fastmcp.client.transports import StdioTransport
 from fastmcp.server.providers.proxy import FastMCPProxy
 
 from .config import Configuration, load_config
-from .airframe import create_airframe_server
+from .airframe import create_airframe_server, readable_in
 from .drone import create_drone_server
 from .enclosure import create_enclosure_server
 from .kicad_native import detect_kicad
+from .miniature import create_miniature_server
 from .structured import StructuredProxyResults
 
 LOG = logging.getLogger(__name__)
@@ -49,6 +51,10 @@ drone_* (only when enabled) are pure in-process HEURISTIC sizing calculators
 (mass/CG/inertia budget, hover propulsion, fixed-wing aero/stability/performance,
 weight-class notes); they read no CAD documents and their outputs are estimates,
 not test data or legal advice.
+enclosure_* (with drone_*) are packaging/seal checks for printed enclosures: boxes and rules, not solids.
+miniature_* (with drone_*) are HEURISTIC miniature/scale-model tools: scale conversion with printable
+limits, STL printability for MSLA resin / fine FDM (walls, spikes, voids, islands, suction cups),
+bases/magnets/keyed pegs and print orientation. STL tools read only airframe output_root/read_roots.
 airframe_* (only when configured) build parametric fixed-wing CAD headlessly in a
 separate FreeCAD interpreter, validate it (closed solids, containment, interference,
 mass budget), render PNG previews and cross-check aerodynamics with AeroSandbox.
@@ -79,7 +85,8 @@ def create_server(config: Configuration) -> FastMCP:
                     states[name] = {"state": "initialized",
                                     "native_cad_runtime": "not_checked"}
                 if name in ("kicad", "pcb"):
-                    states[name]["native_kicad"] = native_kicad()
+                    # Off the event loop: the probe runs native programs with a timeout.
+                    states[name]["native_kicad"] = await asyncio.to_thread(native_kicad)
             try:
                 yield
             finally:
@@ -124,10 +131,13 @@ def create_server(config: Configuration) -> FastMCP:
     if config.drone_tools:
         server.mount(create_drone_server(), namespace="drone")
         server.mount(create_enclosure_server(), namespace="enclosure")
+        server.mount(create_miniature_server(readable_in(config.airframe) if config.airframe else None), namespace="miniature")
         states["drone"] = {"state": "builtin", "native_cad_runtime": "not_required",
                            "kind": "heuristic estimators"}
+        states["miniature"] = {"state": "builtin", "native_cad_runtime": "not_required", "kind": "heuristic estimators",
+                               "stl_reads": "airframe output_root/read_roots" if config.airframe else "disabled (no airframe section)"}
     else:
-        states["drone"] = {"state": "disabled"}
+        states["drone"] = states["miniature"] = {"state": "disabled"}
 
     if config.airframe is not None:
         server.mount(create_airframe_server(config.airframe), namespace="airframe")
@@ -152,6 +162,8 @@ def create_server(config: Configuration) -> FastMCP:
                         "pcb_*": "live KiCad IPC routing; separate session, board and transactions",
                         "freecad_*": "NiRuLink live GUI; arbitrary Python, independent active document/session",
                         "drone_*": "opt-in pure-Python heuristic sizing: mass/CG budget, multirotor hover propulsion, fixed-wing aero/stability/performance, weight class; no documents",
+                        "enclosure_*": "opt-in (with drone_*) module packaging, button stacks and O-ring glands for printed enclosures",
+                        "miniature_*": "opt-in (with drone_*) miniature / scale-model tools: scale_convert, printability_check (STL), base_and_peg, support_plan (STL); STL reads limited to airframe output_root/read_roots",
                         "airframe_*": "opt-in headless FreeCAD airframe build/validation/STEP inspection/PNG previews and AeroSandbox aero cross-check; writes only under airframe.output_root"},
             "units": {"stl": "not encoded by the format; cad_inspect_stl_geometry resolves units from its units argument, else <file>.stl.meta.json sidecar, else ASSUMED mm (reported in result.units.source)",
                       "freecad_length": "mm",

@@ -104,11 +104,10 @@ def _spec_errors(spec: dict) -> list[str]:
     return errors
 
 
-def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
-    mcp = FastMCP("airframe")
+def readable_in(cfg: AirframeConfig):
+    """Path guard shared by airframe_* and miniature_*: files under output_root or a read_root (relative = output_root)."""
     root = Path(cfg.output_root)
     read_roots = [root, *(Path(p) for p in cfg.read_roots)]
-    locks: dict[str, asyncio.Lock] = {}
 
     def readable(path: str) -> Path:
         p = Path(path)
@@ -123,6 +122,14 @@ def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
         if not p.is_file():
             raise ToolError(f"Not a file: {p}")
         return p
+    return readable
+
+
+def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
+    mcp = FastMCP("airframe")
+    root = Path(cfg.output_root)
+    locks: dict[str, asyncio.Lock] = {}
+    readable = readable_in(cfg)
 
     def build_dir(output_name: str) -> Path:
         if not NAME.match(output_name):

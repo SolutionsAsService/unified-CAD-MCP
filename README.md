@@ -141,6 +141,30 @@ were measured 7-20 % low on lofted solids in the tested FreeCAD build. The flaws
 found while designing a real aircraft with this server, the fixes and the roadmap to
 SITL/CFD/FEA/flight evidence are in [docs/drone-testing-flaws.md](docs/drone-testing-flaws.md).
 
+## Miniatures and scale models
+
+Opt-in with `drone_tools` (namespace `miniature_*`), pure Python, every result labelled HEURISTIC with the basis of
+each number (Formlabs Design Guide for resin limits, Prusa KB overhang threshold and SLA hollowing, CHITUBOX/Lychee
+island and suction-cup definitions, Wikipedia on figure-scale conventions). The STL tools read only inside
+`airframe.output_root` / `read_roots`.
+
+- **miniature_scale_convert**: real <-> model size for 1:35/48/72/100/144/285 (any 1:N) or heroic 28/32 mm figures
+  (by eye or crown height); flags walls, wires, holes, embossed/engraved detail and gaps below the process limits and
+  says how much to exaggerate them.
+- **miniature_printability_check**: one part as STL in its print orientation (`rotate_deg`): watertight/manifold,
+  separate bodies, enclosed voids, wall thickness by ray casting, thin spikes against the wire table, overhang area by
+  angle, islands, suction cups sealed by the vat film (depends on orientation and on `on_build_plate`), volume, resin
+  mass and build-volume fit. Presets: `msla_resin` (0.4 mm supported / 0.6 mm unsupported wall, 0.5 mm hole,
+  0.1 mm embossed detail, 3.5 mm drain hole) and `fdm_0.2_nozzle`.
+- **miniature_base_and_peg**: standard round/oval bases, disc-magnet pockets (3x1, 5x2, 6x2 ...) and keyed D-flat
+  peg/socket fits with per-side clearance by process and fit.
+- **miniature_support_plan**: samples rotations, ranks them by largest layer area (peel force), support area and
+  support-start points, and returns `rotate_deg` to re-check.
+
+A worked example (1:48 HALRO display model on a 40 mm base, three keyed parts) lives in the 3dada repository under
+`examples/miniatures/`. A screen, not a slicer: confirm supports and suction in your slicer and print a test piece.
+All tools with one-line descriptions: [docs/tools.md](docs/tools.md) (regenerate with `scripts/list_tools.py`).
+
 ## Development / evidence
 
 ~~~sh

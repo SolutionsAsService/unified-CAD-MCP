@@ -1,9 +1,11 @@
 """Inventory regressions; native method availability is not simulated as success."""
 import ast
+import asyncio
 import json
 import os
 from pathlib import Path
 import sys
+import time
 
 import pytest
 from fastmcp import Client
@@ -72,12 +74,25 @@ def test_connection_adapter_separates_token_from_socket(monkeypatch,tmp_path,tok
     assert client.observed==(token,str(socket))
 
 
-async def test_pcb_failure_isolated_from_existing_backends(config):
-    config.backends['pcb']=BackendConfig(command='nonexistent-pcb-test-runtime')
-    async with Client(create_server(config)) as c:
-        assert 'cad_identify' in {t.name for t in await c.list_tools()}
-        assert (await c.call_tool('unified_get_context')).data['backends']['pcb']['state']=='unavailable'
-        assert (await c.call_tool('kicad_identify')).data['domain']=='kicad'
+async def test_pcb_failure_isolated_from_existing_backends(config,monkeypatch):
+    # The native KiCad probe is not under test here: on a host with KiCad installed it runs real
+    # programs at startup, which made this test machine-dependent (and could hang). Bound the whole test.
+    monkeypatch.setattr('unified_cad_mcp.server.detect_kicad',lambda: {'status':'missing'})
+    config.backends['pcb']=BackendConfig(command='nonexistent-pcb-test-runtime',init_timeout_seconds=5)
+    async with asyncio.timeout(60):
+        async with Client(create_server(config)) as c:
+            assert 'cad_identify' in {t.name for t in await c.list_tools()}
+            assert (await c.call_tool('unified_get_context')).data['backends']['pcb']['state']=='unavailable'
+            assert (await c.call_tool('kicad_identify')).data['domain']=='kicad'
+
+
+def test_kicad_probe_timeout_kills_helpers():
+    from unified_cad_mcp.kicad_native import _run
+    # A child that leaves a grandchild holding stdout: subprocess.run(timeout=) used to wait for it.
+    script='import subprocess,sys,time; subprocess.Popen([sys.executable,"-c","import time; time.sleep(30)"]); time.sleep(30)'
+    start=time.monotonic()
+    assert _run([sys.executable,'-c',script],timeout=1)==(None,'TimeoutExpired')
+    assert time.monotonic()-start<10
 
 
 @pytest.mark.backends

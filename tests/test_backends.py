@@ -30,7 +30,7 @@ async def test_pinned_servers_through_real_unified_stdio(tmp_path):
         names = [tool.name for tool in tools]
         freecad = config.backends.get("freecad")
         freecad_tools = 0 if freecad is None or not freecad.enabled else 16 if freecad.env.get("UNIFIED_FREECAD_EXPERIMENTAL") == "1" else 2
-        assert len(names) == len(set(names)) == (87 if "pcb" in config.backends and config.backends["pcb"].env.get("KICAD_MCP_ENABLE_SCHEMATIC") == "1" else 71 if "pcb" in config.backends else 52) + freecad_tools + (3 if config.drone_tools else 0)
+        assert len(names) == len(set(names)) == (87 if "pcb" in config.backends and config.backends["pcb"].env.get("KICAD_MCP_ENABLE_SCHEMATIC") == "1" else 71 if "pcb" in config.backends else 52) + freecad_tools + sum(n.startswith(("drone_", "enclosure_", "miniature_", "airframe_")) for n in names)
         assert sum(n.startswith("kicad_") for n in names) == 18
         assert sum(n.startswith("cad_") for n in names) == 33
         assert "kicad_design" in names and "cad_create_box_revision" in names
