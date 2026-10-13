@@ -156,3 +156,5 @@ def test_launch_case_and_neutral_point_crosscheck():
     assert {c["name"]: c["pass"] for c in bad["checks"]}["neutral_point_crosscheck_mac"] is False
     shift = r["stability"]["neutral_point_x_mm"] - np_x
     assert ok["neutral_point_crosscheck"]["reference_with_fuselage_shift_x_mm"] == pytest.approx(np_x + 0.02 * mac + shift, abs=0.02)
+    low = glider(neutral_point_crosscheck=dict(neutral_point_x_mm=np_x - 0.3 * mac, source="vlm", tolerance_mac=0.5))
+    assert {c["name"]: c["pass"] for c in low["checks"]}["static_margin_with_reference_np_min"] is False

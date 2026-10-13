@@ -507,9 +507,10 @@ def analyze(data: FixedWingInput) -> dict:
             check("launch_mount_margin: " + m["name"], m["margin_of_safety"], m["margin_of_safety"] >= 0, 0)
     if np_check:
         check("neutral_point_crosscheck_mac", np_check["difference_mac"], abs(np_check["difference_mac"]) <= np_check["tolerance_mac"], np_check["tolerance_mac"])
+        # Safety needs the minimum margin under both estimates; the upper bound (trim drag, handling) is judged on the
+        # closed form above, so a reference that only says "more stable" does not fail the design.
         sm_ref = np_check["static_margin_with_reference"]
-        check("static_margin_with_reference_np", sm_ref, req.static_margin_min <= sm_ref <= req.static_margin_max,
-              [req.static_margin_min, req.static_margin_max])
+        check("static_margin_with_reference_np_min", sm_ref, sm_ref >= req.static_margin_min, req.static_margin_min)
     for item in checks:
         if not item["pass"]:
             warnings.append(f"Check failed: {item['name']} = {item['value']} (limit {item['limit']})")
