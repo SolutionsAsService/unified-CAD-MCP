@@ -179,6 +179,53 @@ def button_stack(b: ButtonStack) -> dict:
             "all_checks_pass": all(c["pass"] for c in checks)}
 
 
+class OringGland(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, Field(min_length=1, max_length=80)]
+    cord_diameter_mm: Pos = Field(description="O-ring cross-section (cord) diameter")
+    groove_depth_mm: Pos = Field(description="Gland depth after the mating face closes (groove depth + any designed gap)")
+    groove_width_mm: Pos
+    groove_centerline_length_mm: Pos | None = Field(default=None, description="Groove path length at the cord centre")
+    oring_inner_diameter_mm: Pos | None = Field(default=None, description="Standard ring ID; omit for spliced cord stock")
+    fastener_pitch_mm: Pos | None = Field(default=None, description="Largest distance between clamping screws along the seal")
+    flange_thickness_mm: Pos | None = Field(default=None, description="Thinner of the two flanges that carry the clamp load")
+    min_squeeze: Annotated[float, Field(gt=0, lt=1, allow_inf_nan=False)] = 0.15
+    max_squeeze: Annotated[float, Field(gt=0, lt=1, allow_inf_nan=False)] = 0.30
+    max_fill: Annotated[float, Field(gt=0, le=1, allow_inf_nan=False)] = 0.85
+    max_stretch: Annotated[float, Field(ge=0, le=0.2, allow_inf_nan=False)] = 0.05
+    max_pitch_over_flange: Annotated[float, Field(gt=0, le=50, allow_inf_nan=False)] = 10.0
+
+
+def oring_gland(g: OringGland) -> dict:
+    """Static axial (face-seal) O-ring gland: squeeze, gland fill, stretch and clamp-screw pitch."""
+    import math
+    squeeze = 1 - g.groove_depth_mm / g.cord_diameter_mm
+    fill = math.pi * g.cord_diameter_mm ** 2 / 4 / (g.groove_depth_mm * g.groove_width_mm)
+    checks = []
+    def check(name, value, ok, limit, basis):
+        checks.append({"name": name, "value": None if value is None else round(value, 4), "pass": bool(ok), "limit": limit, "basis": basis})
+    check("squeeze", squeeze, g.min_squeeze <= squeeze <= g.max_squeeze, [g.min_squeeze, g.max_squeeze],
+          "Static face seal: compress the cord roughly 15-30 % of its diameter (Parker O-Ring Handbook ORD 5700 design ranges); too little leaks at low pressure, too much takes a set.")
+    check("gland fill", fill, fill <= g.max_fill, g.max_fill,
+          "Cord area over gland area; keep <= ~85 % so swell and thermal growth do not over-fill the groove.")
+    check("groove wider than the squeezed cord", g.groove_width_mm - g.cord_diameter_mm, g.groove_width_mm > g.cord_diameter_mm, "> cord diameter",
+          "The compressed cord spreads sideways; a groove narrower than the cord cannot accept it.")
+    stretch = None
+    if g.groove_centerline_length_mm and g.oring_inner_diameter_mm:
+        ring = math.pi * (g.oring_inner_diameter_mm + g.cord_diameter_mm)
+        stretch = g.groove_centerline_length_mm / ring - 1
+        check("installed stretch", stretch, -0.03 <= stretch <= g.max_stretch, [-0.03, g.max_stretch],
+              "Stretch thins the cord and cuts squeeze; keep under ~5 %. Strong compression (< -3 %) makes the ring buckle out of the groove.")
+    if g.fastener_pitch_mm and g.flange_thickness_mm:
+        r = g.fastener_pitch_mm / g.flange_thickness_mm
+        check("clamp-screw pitch / flange thickness", r, r <= g.max_pitch_over_flange, g.max_pitch_over_flange,
+              "Rule of thumb for stiff flanges: between widely spaced screws a thin (printed) flange bows open and the squeeze drops; confirm by a pressure-decay or immersion test.")
+    return {"name": g.name, "squeeze": round(squeeze, 4), "gland_fill": round(fill, 4), "stretch": None if stretch is None else round(stretch, 4),
+            "checks": checks, "all_checks_pass": all(c["pass"] for c in checks),
+            "notes": ["Seal faces must be smooth: FDM layer lines leak; machine, epoxy-coat or print the groove face-down and smooth it.",
+                      "Geometry check only; an IP67/IP68 claim needs an immersion or pressure-decay test of the real enclosure."]}
+
+
 def create_enclosure_server() -> FastMCP:
     mcp = FastMCP("enclosure-internals")
 
@@ -198,5 +245,11 @@ def create_enclosure_server() -> FastMCP:
         """Size a printed button cap over a tactile switch (D-pad, A/B, start/select): cap length from board, switch height,
         wall and protrusion, and check preload, flange clearance at full press and click-before-bottom-out."""
         return button_stack(stack)
+
+    @mcp.tool(name="oring_gland", annotations=READ_ONLY)
+    def oring_gland_tool(gland: OringGland) -> dict:
+        """Check a static face-seal O-ring gland for a sealed / waterproof enclosure: squeeze (15-30 %), gland fill (<= 85 %),
+        groove width, installed stretch and clamp-screw pitch vs flange thickness. Geometry rules; test the real seal."""
+        return oring_gland(gland)
 
     return mcp

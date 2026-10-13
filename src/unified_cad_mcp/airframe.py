@@ -30,6 +30,7 @@ from fastmcp.exceptions import ToolError
 from pydantic import BaseModel, ConfigDict, Field
 
 from .config import AirframeConfig
+from . import flotation
 
 WORKERS = Path(__file__).parent / "workers"
 NAME = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
@@ -45,6 +46,13 @@ class Marker(BaseModel):
     label: str = Field(min_length=1, max_length=40)
     position_mm: Vec3
     color: str = Field(default="#d62728", pattern=r"^#[0-9a-fA-F]{6}$")
+
+
+class FreeboardPoint(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(min_length=1, max_length=80)
+    position_mm: Vec3
+    min_freeboard_mm: Annotated[float, Field(ge=0, le=5000, allow_inf_nan=False)] = 0.0
 
 
 SPEC_KEYS_REQUIRED = ("id", "materials", "fuselage", "wing", "tail")
@@ -202,6 +210,43 @@ def create_airframe_server(cfg: AirframeConfig) -> FastMCP:
             raise ToolError("inspect_step accepts .step/.stp files only")
         return await run(cfg.freecad_python, "freecad_airframe.py", {"op": "inspect_step", "path": str(p), "density_g_cm3": density_g_cm3},
                          "airframe_inspect_step")
+
+    @mcp.tool(name="flotation_check", annotations=READ)
+    async def flotation_check(
+        sealed_stl_paths: Annotated[list[str], Field(min_length=1, max_length=40, description="Closed STL meshes (mm) of the SEALED buoyant volumes only (hull, floats, sealed arms), inside output_root/read_roots")],
+        mass_g: Annotated[float, Field(gt=0, le=1_000_000, allow_inf_nan=False)],
+        cg_mm: Vec3,
+        water_density_kg_m3: Annotated[float, Field(ge=990, le=1050, allow_inf_nan=False)] = 1000.0,
+        freeboard_points: Annotated[list[FreeboardPoint], Field(max_length=40)] = [],
+        heel_step_deg: Annotated[float, Field(ge=1, le=30, allow_inf_nan=False)] = 5.0,
+        heel_max_deg: Annotated[float, Field(ge=10, le=180, allow_inf_nan=False)] = 90.0,
+        min_reserve_buoyancy: Annotated[float, Field(ge=0, le=10, allow_inf_nan=False)] = 0.5,
+        min_gm_mm: Annotated[float, Field(ge=0, le=10_000, allow_inf_nan=False)] = 20.0,
+        min_vanishing_angle_deg: Annotated[float, Field(ge=0, le=180, allow_inf_nan=False)] = 45.0,
+        max_static_heel_deg: Annotated[float, Field(ge=0, le=45, allow_inf_nan=False)] = 3.0,
+    ) -> dict:
+        """HEURISTIC static hydrostatics for floating or amphibious vehicles (e.g. a waterproof multirotor that lands on water).
+
+        From closed meshes of the sealed volumes plus mass and CG (z up, body frame, mm): upright waterline and draft,
+        reserve buoyancy, centre of buoyancy, freeboard of named points (prop discs, vents, seams, windows), and fixed-trim
+        righting-arm (GZ) curves in roll and pitch with initial GM, max GZ and the angle of vanishing stability. Pure Python,
+        no FreeCAD needed. No waves, wind, downwash, spray or flooding: confirm with a tank test.
+        """
+        meshes = {}
+        for path in sealed_stl_paths:
+            p = readable(path)
+            if p.suffix.lower() != ".stl":
+                raise ToolError("flotation_check accepts .stl meshes only")
+            try:
+                meshes[p.name] = flotation.read_stl(p)
+            except ValueError as error:
+                raise ToolError(str(error)) from None
+        if sum(len(m) for m in meshes.values()) > 400_000:
+            raise ToolError("Meshes too large for pure-Python hydrostatics (> 400k triangles); export coarser sealed-volume STLs")
+        return await asyncio.to_thread(flotation.analyze, meshes, mass_g=mass_g, cg_mm=list(cg_mm), water_density_kg_m3=water_density_kg_m3,
+                                       points=[p.model_dump() for p in freeboard_points], heel_step_deg=heel_step_deg, heel_max_deg=heel_max_deg,
+                                       min_reserve_buoyancy=min_reserve_buoyancy, min_gm_mm=min_gm_mm,
+                                       min_vanishing_angle_deg=min_vanishing_angle_deg, max_static_heel_deg=max_static_heel_deg)
 
     @mcp.tool(name="render_preview", annotations=WRITE)
     async def render_preview(

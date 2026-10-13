@@ -179,3 +179,15 @@ No project indexing, supplier download, GUI installation, or host registration
 occurs at startup. Invoking the corresponding upstream tools remains an explicit
 operator action. Error payloads are preserved: some upstream failures are JSON
 text with an error field while isError remains false; inspect both.
+
+## Waterproof and floating vehicles
+
+- **airframe_flotation_check**: static hydrostatics from closed STL meshes of the *sealed* volumes plus mass and CG.
+  Reports the upright waterline and draft, reserve buoyancy, centre of buoyancy, freeboard of named points (prop discs,
+  vents, seams, camera window) and fixed-trim righting-arm (GZ) curves in roll and pitch (initial GM, max GZ, angle of
+  vanishing stability), each as a pass/fail check. Pure Python, no FreeCAD. Heuristic: no waves, wind, downwash or
+  flooding, so confirm with a tank test.
+- **enclosure_oring_gland**: static face-seal O-ring gland check: squeeze (15-30 %), gland fill (<= 85 %), groove width,
+  installed stretch and clamp-screw pitch vs flange thickness. Geometry rules only; an IP67/IP68 claim still needs an
+  immersion or pressure-decay test.
+
