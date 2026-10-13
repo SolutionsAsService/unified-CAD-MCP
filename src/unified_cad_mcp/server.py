@@ -15,6 +15,7 @@ from fastmcp.server.providers.proxy import FastMCPProxy
 from .config import Configuration, load_config
 from .airframe import create_airframe_server
 from .drone import create_drone_server
+from .enclosure import create_enclosure_server
 from .kicad_native import detect_kicad
 from .structured import StructuredProxyResults
 
@@ -122,6 +123,7 @@ def create_server(config: Configuration) -> FastMCP:
 
     if config.drone_tools:
         server.mount(create_drone_server(), namespace="drone")
+        server.mount(create_enclosure_server(), namespace="enclosure")
         states["drone"] = {"state": "builtin", "native_cad_runtime": "not_required",
                            "kind": "heuristic estimators"}
     else:

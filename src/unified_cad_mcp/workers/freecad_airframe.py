@@ -191,7 +191,19 @@ def _main():
         second = (det[:, None, None] * outer).sum(axis=0) / 120.0
         if vol < 0:  # inward-wound tessellation
             vol, first, second = -vol, -first, -second
-        return vol, first, second, {"closed": bool(mesh.isSolid()), "triangles": int(len(F))}
+        return vol, first, second, {"closed": bool(mesh.isSolid()) or watertight(P, F), "triangles": int(len(F))}
+
+    def watertight(P, F):
+        """Edge-pairing test after welding coincident vertices: every undirected edge used by exactly two triangles.
+        Mesh.isSolid() also rejects valid tessellations of thin printed parts (duplicate seam vertices between faces)."""
+        if not len(F):
+            return False
+        _, inv = np.unique(np.round(P, 5), axis=0, return_inverse=True)
+        T = inv.reshape(-1)[F]
+        T = T[(T[:, 0] != T[:, 1]) & (T[:, 1] != T[:, 2]) & (T[:, 0] != T[:, 2])]
+        E = np.sort(np.concatenate([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]]), axis=1)
+        _, counts = np.unique(E, axis=0, return_counts=True)
+        return bool(len(counts)) and bool((counts == 2).all())
 
     def surface_integrals(shape):
         P, F, _ = mesh_arrays(shape)
@@ -710,7 +722,8 @@ def _main():
             vol, first, second, info = solid_integrals(s)
             gvol = s.Volume
             com = first / vol if vol else np.zeros(3)
-            row = {"index": i, "valid": s.isValid(), "closed": all(sh.isClosed() for sh in s.Shells) and info["closed"],
+            brep_closed = all(sh.isClosed() for sh in s.Shells)
+            row = {"index": i, "valid": s.isValid(), "closed": brep_closed and info["closed"], "brep_closed": brep_closed, "mesh_closed": info["closed"],
                    "volume_mm3": round(vol, 3), "kernel_gprop_volume_mm3": round(gvol, 3),
                    "gprop_volume_error_fraction": round((gvol - vol) / vol, 5) if vol else None,
                    "area_mm2": round(surface_integrals(s)[0], 3),
