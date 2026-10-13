@@ -91,7 +91,7 @@ async def test_drone_namespace_is_opt_in_and_validated(tmp_path):
         tools = {t.name: t for t in await client.list_tools()}
         assert set(tools) == {"unified_get_context", "drone_mass_cg_budget", "drone_propulsion_estimate", "drone_regulatory_weight_class",
                               "drone_fixed_wing_analysis", "drone_rf_antenna_layout_check",
-                              "enclosure_module_catalog", "enclosure_fit_check"}
+                              "enclosure_module_catalog", "enclosure_fit_check", "enclosure_button_stack"}
         assert all(tools[n].annotations.read_only_hint for n in tools if n.startswith(("drone_", "enclosure_")))
         result = await client.call_tool("drone_propulsion_estimate", {"all_up_mass_g": 1000, "rotor_count": 4, "prop_diameter_in": 10, "battery_cells": 4, "battery_capacity_mah": 5000})
         assert result.data["hover_flight_time_min"] > 0

@@ -1,4 +1,4 @@
-from unified_cad_mcp.enclosure import CATALOG, FitInput, fit_check
+from unified_cad_mcp.enclosure import CATALOG, ButtonStack, FitInput, button_stack, fit_check
 
 
 def base(**over):
@@ -23,3 +23,16 @@ def test_overlap_tight_side_and_metal_in_keepout_fail():
                       dict(name="nfc", kind="nfc", min_mm=[9, 60, 0.6], size_mm=[48, 24, 8])])
     failed = {c["name"].split(":")[0] for c in r["checks"] if not c["pass"]}
     assert {"inside cavity with clearance", "separation", "keep-out nfc antenna"} <= failed
+
+
+def test_button_stack_sizes_cap_and_catches_bad_stack():
+    ok = button_stack(ButtonStack(name="A", carrier_top_z_mm=17.6, switch_height_mm=5.0, switch_travel_mm=0.25, shell_outer_z_mm=26, wall_mm=1.8))
+    assert ok["all_checks_pass"], ok["checks"]
+    assert ok["cap_length_mm"] == 26 + 1.5 - (17.6 + 5.0 + 0.15)
+    bad = button_stack(ButtonStack(name="low", carrier_top_z_mm=22.5, switch_height_mm=2.5, switch_travel_mm=0.25, shell_outer_z_mm=26, wall_mm=1.8))
+    assert not bad["all_checks_pass"]
+
+
+def test_catalog_has_game_boy_wallet_parts():
+    for k in ("waveshare-2.4in-lcd-module", "seeed-xiao-esp32s3", "tactile-switch-6x6", "slide-switch-ss12d00"):
+        assert k in CATALOG and CATALOG[k]["source"]

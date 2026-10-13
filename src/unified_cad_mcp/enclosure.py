@@ -35,6 +35,19 @@ CATALOG = {
     "usb-c-panel-extension-short": {"size_mm": [12.0, 30.0, 7.5], "kind": "connector",
         "source": "generic USB-C male-to-female panel-mount extension, flange body (catalog class, not a selected MPN)",
         "confidence": "class envelope; select a part", "mass_g": 6},
+    "waveshare-2.4in-lcd-module": {"size_mm": [70.5, 43.3, 7.5], "kind": "host",
+        "source": "Waveshare 2.4inch LCD Module (ILI9341, SPI, 240x320) wiki outline 70.50 x 43.30 mm; thickness incl. header estimated",
+        "confidence": "vendor outline; thickness, holes and active-area offset to measure", "mass_g": 18,
+        "active_area_mm": [48.96, 36.72]},
+    "seeed-xiao-esp32s3": {"size_mm": [21.0, 17.8, 3.5], "kind": "host",
+        "source": "Seeed Studio XIAO ESP32S3 wiki: 21 x 17.8 mm, USB-C on the short edge (height incl. USB-C ~3.5 mm)",
+        "confidence": "vendor dimensions", "mass_g": 3},
+    "tactile-switch-6x6": {"size_mm": [6.0, 6.0, 5.0], "kind": "control",
+        "source": "6 x 6 mm through-hole tactile switch, 5 mm overall height, ~0.25 mm travel (common C&K PTS645-class)",
+        "confidence": "class envelope; travel per selected part", "mass_g": 0.3, "travel_mm": 0.25},
+    "slide-switch-ss12d00": {"size_mm": [8.6, 3.6, 3.5], "kind": "control",
+        "source": "SS12D00 SPDT slide switch body 8.6 x 3.6 x 3.5 mm, actuator 1.5 mm proud, 2 mm throw",
+        "confidence": "class envelope", "mass_g": 0.5},
     "tactile-switch-12mm-module": {"size_mm": [12.0, 12.0, 7.3], "kind": "control",
         "source": "12 x 12 mm tactile switch (body + cap) on a small breakout",
         "confidence": "class envelope", "mass_g": 2},
@@ -109,7 +122,7 @@ def fit_check(data: FitInput) -> dict:
         rows.append({"name": m.name, "kind": m.kind, "min_side_clearance_mm": round(side, 3),
                      "envelope_mm": [round(hi[i] - lo[i], 3) for i in range(3)]})
         if not m.may_breach_cavity:
-            check(f"inside cavity with clearance: {m.name}", side, side >= m.clearance_mm, m.clearance_mm,
+            check(f"inside cavity with clearance: {m.name}", side, side >= m.clearance_mm - 1e-6, m.clearance_mm,
                   "Per-side clearance around a rigid module for FDM (0.4–0.5 mm starting point; verify with a stepped coupon).")
         if m.kind == "battery":
             check(f"battery swelling allowance: {m.name}", m.swelling_fraction, m.swelling_fraction >= 0.05, 0.05,
@@ -120,7 +133,7 @@ def fit_check(data: FitInput) -> dict:
             a, b = data.modules[i], data.modules[j]
             g = _gap(boxes[a.name], boxes[b.name])
             need = max(a.clearance_mm, b.clearance_mm) if "battery" not in (a.kind, b.kind) else max(1.0, a.clearance_mm, b.clearance_mm)
-            check(f"separation: {a.name} / {b.name}", g, g >= need, need,
+            check(f"separation: {a.name} / {b.name}", g, g >= need - 1e-6, need,
                   "Separation between module envelopes (battery ≥ 1 mm from boards: insulation and abrasion).")
     for k in data.keepouts:
         kb = _box(k)
@@ -129,6 +142,41 @@ def fit_check(data: FitInput) -> dict:
             check(f"keep-out {k.name}: {mt.name}", g, g > 0, 0, "No metal (screws, inserts, magnets) inside an antenna keep-out; it detunes the loop and shields the field.")
     return {"modules": rows, "checks": checks, "all_checks_pass": all(c["pass"] for c in checks),
             "method": "axis-aligned envelopes; complements, not replaces, a solid interference check"}
+
+
+class ButtonStack(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, Field(min_length=1, max_length=80)]
+    carrier_top_z_mm: Finite = Field(description="Top face of the board / carrier the switch sits on")
+    switch_height_mm: Pos = Field(description="Switch height from board to plunger top, unpressed")
+    switch_travel_mm: Pos
+    shell_outer_z_mm: Finite = Field(description="Outer face of the wall the cap passes through")
+    wall_mm: Pos
+    protrusion_mm: Pos = Field(default=1.5, description="Cap face above the outer surface")
+    flange_mm: Pos = Field(default=1.0, description="Retaining flange under the wall")
+    preload_gap_mm: Annotated[float, Field(ge=0, le=1, allow_inf_nan=False)] = 0.15
+    cap_travel_limit_mm: Pos = Field(default=0.6, description="Cap stroke before the flange would hit the board (overtravel stop)")
+
+
+def button_stack(b: ButtonStack) -> dict:
+    """Cap length for a printed button over a tactile switch, and whether the stack works."""
+    plunger = b.carrier_top_z_mm + b.switch_height_mm
+    face = b.shell_outer_z_mm + b.protrusion_mm
+    cap_len = face - (plunger + b.preload_gap_mm)
+    flange_bottom = b.shell_outer_z_mm - b.wall_mm - b.flange_mm
+    stroke_to_click = b.preload_gap_mm + b.switch_travel_mm
+    checks = []
+    def check(name, value, ok, limit, basis):
+        checks.append({"name": name, "value": round(value, 3), "pass": bool(ok), "limit": limit, "basis": basis})
+    check("cap reaches the switch with preload gap", cap_len, cap_len > b.wall_mm + b.flange_mm, f"> wall + flange ({b.wall_mm + b.flange_mm})",
+          "The cap must pass through the wall and keep its flange below it.")
+    check("flange clears the board at full press", flange_bottom - stroke_to_click - b.carrier_top_z_mm, flange_bottom - stroke_to_click - b.carrier_top_z_mm >= 0.3, 0.3,
+          "At full stroke the flange must not land on the board or components.")
+    check("click before the cap bottoms", stroke_to_click, stroke_to_click <= b.protrusion_mm and stroke_to_click <= b.cap_travel_limit_mm, min(b.protrusion_mm, b.cap_travel_limit_mm),
+          "The switch must click before the cap face is flush with the shell (and within the stroke limit).")
+    return {"name": b.name, "cap_length_mm": round(cap_len, 3), "plunger_top_z_mm": round(plunger, 3), "cap_face_z_mm": round(face, 3),
+            "flange_bottom_z_mm": round(flange_bottom, 3), "stroke_to_click_mm": round(stroke_to_click, 3), "checks": checks,
+            "all_checks_pass": all(c["pass"] for c in checks)}
 
 
 def create_enclosure_server() -> FastMCP:
@@ -144,5 +192,11 @@ def create_enclosure_server() -> FastMCP:
         """Packaging check for modules in an enclosure cavity: per-side clearance, pairwise separation, battery swelling
         allowance, antenna keep-outs vs metal parts, and wall thickness. Axis-aligned boxes; run a solid interference check too."""
         return fit_check(fit)
+
+    @mcp.tool(name="button_stack", annotations=READ_ONLY)
+    def button_stack_tool(stack: ButtonStack) -> dict:
+        """Size a printed button cap over a tactile switch (D-pad, A/B, start/select): cap length from board, switch height,
+        wall and protrusion, and check preload, flange clearance at full press and click-before-bottom-out."""
+        return button_stack(stack)
 
     return mcp
