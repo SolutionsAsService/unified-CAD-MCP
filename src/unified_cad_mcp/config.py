@@ -34,6 +34,9 @@ class AirframeConfig(BaseModel):
     output_root: str = Field(min_length=1, description="Existing dedicated directory; builds go to <output_root>/<name>/")
     read_roots: list[str] = Field(default_factory=list, description="Extra existing directories airframe_inspect_step may read")
     timeout_seconds: float = Field(default=900, gt=0, le=3600, allow_inf_nan=False)
+    openvsp_python: str | None = Field(default=None, description="Optional Python matching the OpenVSP python API build (3.12 for OpenVSP 3.4x/3.5x Ubuntu 24.04)")
+    openvsp_root: str | None = Field(default=None, description="OpenVSP install dir containing vspaero and python/openvsp")
+    openvsp_library_path: str | None = Field(default=None, description="Optional LD_LIBRARY_PATH for the OpenVSP worker (libgomp/libcminpack)")
 
 
 class Configuration(BaseModel):
