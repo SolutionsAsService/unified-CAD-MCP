@@ -163,6 +163,27 @@ island and suction-cup definitions, Wikipedia on figure-scale conventions). The 
 
 A worked example (1:48 HALRO display model on a 40 mm base, three keyed parts) lives in the 3dada repository under
 `examples/miniatures/`. A screen, not a slicer: confirm supports and suction in your slicer and print a test piece.
+
+More miniature tools (`miniature_more.py`, same namespace), added while building the fantasy-miniatures line (a modular
+tower, a well, a scatter set and a figure):
+
+- **miniature_terrain_grid_check**: snap a terrain footprint to a 1 in / 25 mm / 2 in grid; lay out magnet pockets (press fit,
+  pocket floor and edge wall checked) or OpenLOCK-style clip positions (6 mm base, 1 in grid).
+- **miniature_detail_advice**: per feature class (head, hand, weapon haft, blade, eye socket, panel line, rivet, rope, plank joint,
+  wall): true size at scale, heroic multiplier, process limit, and the size to model so it prints and reads at table distance
+  (1 arc-minute acuity x 2.5 to hold paint).
+- **miniature_hollow_plan**: one STL in its print pose: hollow or leave solid, shell thickness, resin saved, and drain holes at the
+  lowest outer points plus a vent at the top.
+- **miniature_split_plan**: cut plan for a part too big for a named printer (Mars 5 Ultra, Saturn 4 Ultra, Photon M7 Pro, SL1S,
+  MK4, MINI, A1, X1C), with peg size/count/keying, socket size and clearance per joint.
+- **miniature_base_catalog**: round, oval, hex (across flats), square and rectangular bases, scenic-top advice, and the smallest
+  bases that fit a footprint.
+- **miniature_floor_clearance_check**: buildings with removable floors/roofs: storey height and door size vs a figure on its
+  base, drop-in floor slip clearance, storey lip engagement, hatch and access opening size.
+- **miniature_plate_pack**: parts per build plate and plates per batch for a named printer (shelf packing of print-pose
+  footprints; an upper bound, the slicer arranges).
+
+All HEURISTIC, sources in the module docstring.
 All tools with one-line descriptions: [docs/tools.md](docs/tools.md) (regenerate with `scripts/list_tools.py`).
 
 ## Development / evidence

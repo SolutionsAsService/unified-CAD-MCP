@@ -773,4 +773,6 @@ def create_miniature_server(readable=None) -> FastMCP:
         tris = load(stl_path)
         return await asyncio.to_thread(support_plan, tris, process=process, tilt_step_deg=tilt_step_deg, tilt_max_deg=tilt_max_deg)
 
+    from .miniature_more import register  # terrain, detail, hollowing, splitting, bases, buildings, plate packing
+    register(mcp, load)
     return mcp

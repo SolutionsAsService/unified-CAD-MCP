@@ -107,9 +107,16 @@ advertises depends on the operator config (backends, `drone_tools`, `airframe`) 
 ## miniature_*
 
 - `miniature_base_and_peg`: Base footprint (standard round/oval sizes), magnet pocket size and floor, and a keyed (D-flat) peg and socket for multi-part kits with per-side clearance for the process and fit (press/glue/slip). HEURISTIC clearances: print a tolerance coupon first.
+- `miniature_base_catalog`: Round, oval, hex, square and rectangular bases plus scenic-top advice; smallest bases that fit a footprint.
+- `miniature_detail_advice`: Scale-aware detail exaggeration: true size at scale, heroic multiplier, process limit and the size to model.
+- `miniature_floor_clearance_check`: Building clearances: storey height and doors vs a figure on its base, drop-in floor fit, lip engagement, hatch.
+- `miniature_hollow_plan`: Resin hollowing advice: hollow or not, shell thickness, resin saved, and drain + vent hole positions.
+- `miniature_plate_pack`: Parts per build plate and plates per batch for a named printer (shelf packing of print-pose footprints).
 - `miniature_printability_check`: HEURISTIC printability screen of one miniature part for MSLA resin or 0.2 mm-nozzle FDM: watertight/manifold, separate bodies, enclosed voids (need drain + vent), wall thickness by ray casting (resin: supported 0.4 / unsupported 0.6 mm), thin spikes vs the Formlabs wire table, overhang area by angle, islands, suction cups sealed by the vat film, volume and resin mass, build-volume fit. Each check carries its basis; confirm in a slicer.
 - `miniature_scale_convert`: Convert real sizes to model sizes (or back) for a named scale and flag features below the process limits (walls, wires, holes, embossed/engraved detail, gaps) with the exaggeration needed to print them. Figure scales (28/32 mm heroic) become 1:N by eye or crown height. HEURISTIC; resin limits from the Formlabs Design Guide.
+- `miniature_split_plan`: Cut plan for a part too big for a named printer, with peg size, count, keying and clearance per joint.
 - `miniature_support_plan`: HEURISTIC print-orientation screen: samples rotations about x and y and ranks them by the largest layer area (MSLA peel and suction force), support area (faces flatter than the self-supporting angle) and support-start points (local minima). Returns rotate_deg for miniature_printability_check. Does not place supports.
+- `miniature_terrain_grid_check`: Snap a terrain footprint to a gaming grid and lay out edge connectors (magnets or OpenLOCK-style clips) with checks.
 
 ## pcb_*
 
