@@ -777,6 +777,8 @@ def create_miniature_server(readable=None) -> FastMCP:
     register(mcp, load)
     from .miniature_gaps import register as register_gaps  # narrow air gaps between facing surfaces, through-loop count
     register_gaps(mcp, load)
+    from .miniature_figure import register as register_figure  # per-feature thickness of blades, hafts, staffs, bows
+    register_figure(mcp, load)
     from .miniature_scene import register as register_scene  # scene bases: several parts, sockets and a magnet on one base
     register_scene(mcp, load)
     return mcp
