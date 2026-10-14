@@ -696,7 +696,7 @@ def create_miniature_server(readable=None) -> FastMCP:
         except ValueError as error:
             raise ToolError(str(error)) from None
         if not tris or len(tris) > 300_000:
-            raise ToolError("Mesh empty or too large for the pure-Python checker (> 300k triangles); export a coarser STL")
+            raise ToolError("Mesh empty or too large for the pure-Python checker (> 300k triangles): re-mesh the sculpt coarser (miniature_mesh_budget gives the SDF pitch); do not QEM-decimate a marched mesh, it breaks manifold")
         return tris
 
     @mcp.tool(name="scale_convert", annotations=READ_ONLY)
@@ -779,6 +779,8 @@ def create_miniature_server(readable=None) -> FastMCP:
     register_gaps(mcp, load)
     from .miniature_figure import register as register_figure  # per-feature thickness of blades, hafts, staffs, bows
     register_figure(mcp, load)
+    from .miniature_mesh import register as register_mesh  # SDF pitch for a triangle budget, speck/inside-out shell audit
+    register_mesh(mcp, load)
     from .miniature_scene import register as register_scene  # scene bases: several parts, sockets and a magnet on one base
     register_scene(mcp, load)
     return mcp
