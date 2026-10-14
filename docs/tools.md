@@ -108,6 +108,7 @@ advertises depends on the operator config (backends, `drone_tools`, `airframe`) 
 
 - `miniature_base_and_peg`: Base footprint (standard round/oval sizes), magnet pocket size and floor, and a keyed (D-flat) peg and socket for multi-part kits with per-side clearance for the process and fit (press/glue/slip). HEURISTIC clearances: print a tolerance coupon first.
 - `miniature_base_catalog`: Round, oval, hex, square and rectangular bases plus scenic-top advice; smallest bases that fit a footprint.
+- `miniature_base_layout_check`: HEURISTIC layout screen for a scene base carrying several parts: footprints on the base top, gaps between parts, socket inside its footprint, socket-to-rim, socket-to-magnet-pocket and floor walls vs the process.
 - `miniature_detail_advice`: Scale-aware detail exaggeration: true size at scale, heroic multiplier, process limit and the size to model.
 - `miniature_floor_clearance_check`: Building clearances: storey height and doors vs a figure on its base, drop-in floor fit, lip engagement, hatch.
 - `miniature_hollow_plan`: Resin hollowing advice: hollow or not, shell thickness, resin saved, and drain + vent hole positions.
