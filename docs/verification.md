@@ -154,3 +154,9 @@ succeeded. This required two host-side steps that are not part of this repositor
 Still not performed: any native KiCad operation (kicad-cli/pcbnew not installable here
 without sudo; not on conda-forge), live KiCad IPC, FreeCAD GUI / NiRuLink addon, Windows.
 drone_* outputs are heuristic estimates verified only against independent formulae.
+
+## Miniature check throughput and memory (field notes, 2026-10-14)
+
+- miniature_printability_check / gap / shell tools take ~2 min per part at ~160k triangles and ~5 min at ~245k triangles. Budget triangles before calling them (~160k for figures and bits, ~250k for bases).
+- Cache results on the caller side keyed by tool + args + STL sha256, so a killed batch resumes where it stopped instead of starting over.
+- On an 8 GB host, run at most one heavy check per build at a time, under a memory cap (systemd-run --user --scope -p MemoryMax=1500M). Keep two builds or fewer in parallel, because the agent transcripts live in the gateway's memory.
